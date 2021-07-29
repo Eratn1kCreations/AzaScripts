@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="robots" content="noindex">
+	<title>SSAMISSWOI OCR</title>
+	<script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
+	<style>
+		html, body{
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			background: rgb(150, 150, 150);
+		}
+		body > div{
+			width: 100%;
+		}
+		/* input */
+		#inputblock{
+			position: relative;
+			background: rgb(44, 44, 44);
+			color: silver;
+			height: 60px;
+		}
+
+		#inputblock input {
+			display: block;
+			width: 100%;
+			height: 40px;
+			opacity: 0;
+		}
+
+		#inputblock:after {
+			content: "Drop screens here";
+			position: absolute;
+			top: 10px;
+			left: calc(50% - 58px);
+		}
+
+		#inputblock button {
+			background: rgb(22, 22, 22);
+			color: silver;
+			cursor: pointer;
+			width: 100%;
+			height: 20px;
+			border: 0;
+			border-radius: 0;
+		}
+		/* preview */
+		#workerblock {
+			height: 40%;
+			background: rgb(120, 120, 120);
+		}
+		#workerblock canvas{
+			position: absolute;
+			transform-origin: 0 0;
+			left: 50%;
+		}
+		#workerblock #tesseractLayer{
+			display: none;
+		}
+
+		#results{
+			display: flex;
+			flex-wrap: wrap;
+			width: calc(100% - 5px);
+			margin-left: 5px;
+		}
+
+		#results>.row{
+			flex: 50% !important;
+			height: 20px !important;
+		}
+
+		#outputBlock{
+			height: calc(60% - 120px);
+			width: calc(100% - 5px);
+			margin-left: 5px;
+		}
+
+		#outputBlock >textarea{
+			height: 100%;
+			width: 100%;
+			border: 0;
+			background: rgb(150, 150, 150);
+			font-size: x-small;
+		}
+
+		.etq {
+			margin-top: 20px;
+			border-top: 1px solid;
+			position: relative
+			
+		}
+		
+		.etq:before{
+			content: attr(desc);
+			position: absolute;
+			top: -15px;
+			left: 0;
+			font-size: x-small
+		}
+
+		.etq:after {
+			content: attr(desc2);
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+		#pb{
+			width: 60%;
+			margin-left: 20%;
+		}
+	
+	</style>
+</head>
+
+<body>
+	<div id="inputblock">
+		<input type="file" multiple="multiple" />
+		<button onclick="processClick()">Start processing</button>
+	</div>
+	<div id="workerblock">
+		<canvas id="baseImage"></canvas>
+		<canvas id="drawLayer"></canvas>
+		<canvas id="tesseractLayer"></canvas>
+	</div>
+	<div id="results">
+		<div id="progress" class="etq row" desc="Data processing progress:" desc2="">
+			<progress id="pb" min="0" max="10" value="0"></progress>
+		</div>
+		<div id="removeinfo" class="etq row" desc="Data duplicates info:"  desc2="Removed 0 duplicates"></div>
+	</div>
+	<div id="outputBlock" class="etq" desc="Raid attempts output:">
+		<textarea id="output"></textarea>
+	</div>
+	<script>
+	const conB = document.getElementById("baseImage"),
+		conL = document.getElementById("drawLayer"),
+		conT = document.getElementById("tesseractLayer"),
+		cB = conB.getContext("2d"),
+		cL = conL.getContext("2d"),
+		cT = conT.getContext("2d");
+	cB.translate(.5, .5), cL.translate(.5, .5), cT.translate(.5, .5);
+	const reader = new FileReader;
+	var filesQueue = [],
+		attemptsList = [];
+	document.querySelector("input").addEventListener("drop", a => {
+		a.preventDefault(), filesQueue = a.dataTransfer.files, afterClick()
+	});
+
+  	function processClick(){
+    	filesQueue = document.querySelector("input").files, afterClick()
+  	}
+
+	function afterClick(){
+    	attemptsList = [], document.getElementById("removeinfo").innerHTML = "", document.getElementById("output").innerHTML = "", document.getElementById("pb").setAttribute("value", 0), document.getElementById("pb").setAttribute("max", filesQueue.length), document.getElementById("progress").setAttribute("desc2", `0/${filesQueue.length}`), processFiles(0)
+  	}
+
+	function processFiles(a) {
+		reader.readAsDataURL(filesQueue[a]), reader.onload = () => {
+			var b = new Image;
+			b.src = reader.result, b.onload = () => {
+				conB.width = conL.width = b.width, conB.height = conL.height = b.height;
+				var c = b.width,
+					d = b.height,
+					wh = (window.innerHeight > 0) ? window.innerHeight : screen.height,
+					ww = (window.innerWidth > 0) ? window.innerWidth : screen.width,
+					sh = d > wh*.4 ? wh*.4/d : d,
+					sw = c*sh > ww? ww/c : sh,
+					sh = c*sh > ww? sw : sh,
+					hm = ((wh*.4 - d*sh)/(wh*.4))*50;
+				cB.drawImage(b, 0, 0), cL.clearRect(0, 0, b.width, b.height), detectBattleLogArea(c, d, a + 1), document.querySelectorAll("canvas").forEach(e => e.setAttribute("style", `transform:scale(${sw},${sh}) translate(-50%, ${hm}%)`))
+			}
+		}
+	}
+
+	function detectBattleLogArea(a, b, c) {
+		let d = Math.floor(b / 2),
+			e = Math.floor(a / 2),
+			f = [0, 0];
+		var g = cB.getImageData(0, d, a, 1).data;
+		for(let d = e; d < a; d++) {
+			if(0 == f[0]) {
+				let a = e - d % e;
+				80 > g[4 * a] + g[4 * a + 1] + g[4 * a + 2] && (f[0] = a)
+			}
+			if(0 == f[1] && 80 > g[4 * d] + g[4 * d + 1] + g[4 * d + 2] && (f[1] = d), 0 < f[0] && 0 < f[1]) break
+		}
+		let h = [0, 0];
+		g = cB.getImageData(e, 0, 1, b).data;
+		for(let e = d; e < b; e++) {
+			if(0 == h[0]) {
+				let a = d - e % d;
+				80 > g[4 * a] + g[4 * a + 1] + g[4 * a + 2] && (h[0] = a)
+			}
+			if(0 == h[1] && 80 > g[4 * e] + g[4 * e + 1] + g[4 * e + 2] && (h[1] = e), 0 < h[0] && 0 < h[1]) break
+		}
+		let i = {
+			x: f[0],
+			y: h[0] - 2,
+			w: f[1] - f[0],
+			h: h[1] - h[0] + 4
+		};
+		ocrData(i, c)
+	}
+
+	function ocrData(a, b) {
+		conT.width = a.w, conT.height = 5 * a.h, cT.drawImage(conB, a.x, a.y - 2 * a.h, a.w, 5 * a.h, 0, 0, a.w, 5 * a.h), cT.fillStyle = "black";
+		for(let c = 0; 5 > c; c++) markArea(a, c), cT.fillRect(0, a.h * (c + .35), 400, .65 * a.h), cT.fillRect(a.w - 400, a.h * (c + .35), 400, .65 * a.h);
+		toGrayAndContrast(5);
+		var c = new Image;
+		c.src = conT.toDataURL(), c.onload = () => {
+			Tesseract.recognize(c, "eng").then(({
+				data: {
+					text: a
+				}
+			}) => {
+				textOperations(a, b)
+			})
+		}
+	}
+
+	function toGrayAndContrast(a = 1) {
+		let b = cT.getImageData(0, 0, conT.width, conT.height),
+			c = b.data;
+		for(var d, e = 0; e < c.length; e += 4) d = (c[e] + c[e + 1] + c[e + 2]) / 3, c[e] = c[e + 1] = c[e + 2] = 255 - 255 * ((d / 255 - .5) * a + .5);
+		cT.putImageData(b, 0, 0)
+	}
+
+	function markArea(a, b) {
+		cL.fillStyle = b % 2 ? "rgba(255,0,0,.25)" : "rgba(0,255,0,.25)", cL.fillRect(a.x, a.y + (b - 2) * a.h, a.w, a.h), cL.fillStyle = "rgba(0,0,0,.55)", cL.fillRect(a.x, a.y + a.h * (b - 2 + .35), 400, .65 * a.h), cL.fillRect(a.x + a.w - 400, a.y + a.h * (b - 2 + .35), 400, .65 * a.h)
+	}
+
+	function textOperations(a, b) {
+		let c = {
+				name: "",
+				lv: "",
+				boss: "",
+				dmg: ""
+			},
+			d = [];
+		a.split("\n").forEach(a => {
+			let b = a.split(" ");
+			if(2 < b.length) {
+				let a = 0;
+				b.forEach(b => {
+					0 == a ? (a++, c.name = b in fixTable ? fixTable[b] : b) : 1 === a ? b.includes("Lv.") && (a++, c.lv = b.split(".")[1]) : 2 === a ? (a++, c.boss = b) : 3 === a ? c.boss += " " + b : void 0
+				})
+			} else 1 < b.length && (c.dmg = b[0].replaceAll(",", ""), d.push({...c
+			}), c = {
+				name: "",
+				lv: "",
+				boss: "",
+				dmg: ""
+			})
+		});
+		if(d.length < 5) alert(`There was problem with reading the file!\n Filename: ${filesQueue[b-1].name}`);
+		for(let c = d.length - 1; 0 <= c; c--) attemptsList.push(d[c]);
+		document.getElementById("progress").setAttribute("desc2", `${b}/${filesQueue.length}`), document.getElementById("pb").setAttribute("value", b), b < filesQueue.length ? processFiles(b) : printOutput()
+	}
+
+	function printOutput() {
+		let a = attemptsList.reduce((a, b) => a.some(a => JSON.stringify(b) === JSON.stringify(a)) ? a : [...a, b], []),
+			b = "";
+		a.forEach(a => {
+			b += a.name + "\t" + a.dmg + "\t" + a.boss + "\t" + a.lv + "\n"
+		}), document.getElementById("removeinfo").innerHTML = "Removed " + (attemptsList.length - a.length) + " duplicates", document.getElementById("output").innerHTML = b
+	}
+	const fixTable = {
+		OonePinch: "OnePinch",
+		onePinch: "OnePinch",
+		Clshima: "Cushima"
+	};
+	</script>
+</body>
+
+</html>
