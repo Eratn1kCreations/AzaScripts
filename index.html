@@ -271,7 +271,7 @@
 			b = "";
 		a.forEach(a => {
 			b += a.name + "\t" + a.dmg + "\t" + a.boss + "\t" + a.lv + "\n"
-		}), document.getElementById("removeinfo").innerHTML = "Removed " + (attemptsList.length - a.length) + " duplicates", document.getElementById("output").innerHTML = b
+		}), document.getElementById("removeinfo").setAttribute("desc2","Removed " + (attemptsList.length - a.length) + " duplicates"), document.getElementById("output").innerHTML = b
 	}
 	const fixTable = {
 		OonePinch: "OnePinch",
