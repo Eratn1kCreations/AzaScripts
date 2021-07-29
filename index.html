@@ -83,12 +83,24 @@
 			margin-left: 5px;
 		}
 
-		#outputBlock >textarea{
+		#outputBlock>textarea{
 			height: 100%;
 			width: 100%;
 			border: 0;
 			background: rgb(150, 150, 150);
 			font-size: x-small;
+		}
+
+		#outputBlock>button{
+			position: absolute;
+			top: -20px;
+			right: 0px;
+			font-size: x-small;
+			background: rgb(22, 22, 22);
+			color: silver;
+			cursor: pointer;
+			height: 20px;
+			border: 0;
 		}
 
 		.etq {
@@ -139,6 +151,7 @@
 	</div>
 	<div id="outputBlock" class="etq" desc="Raid attempts output:">
 		<textarea id="output"></textarea>
+		<button onclick="document.querySelector('textarea').select();document.execCommand('copy');">Copy to clipboard</button>
 	</div>
 	<script>
 	const conB = document.getElementById("baseImage"),
