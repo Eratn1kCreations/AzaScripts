@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="robots" content="noindex">
+	<title>SSAMISSWOI OCR 2.0</title>
+	<script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
+	<link href="api/advanced.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+	<div id="inputblock">
+		<input type="file" multiple="multiple" />
+		<button onclick="processClick()">Start processing</button>
+	</div>
+	<div id="worker">
+		<canvas id="preview"></canvas>
+		<canvas id="tesseract" class="hide"></canvas>
+		<canvas id="characters" class="hide"></canvas>
+		<canvas id="bosse" class="hide"></canvas>
+	</div>
+	<div id="results">
+		<div id="progress" class="etq row" desc="Processing progress:" desc2="">
+			<progress id="pb" min="0" max="10" value="0"></progress>
+		</div>
+		<div id="removeinfo" class="etq row" desc="Duplicates info:"  desc2="Removed 0 duplicates"></div>
+	</div>
+	<div id="outputBlock" class="etq" desc="Raid attempts output:">
+		<textarea id="output"></textarea>
+		<button onclick="document.querySelector('textarea').select();document.execCommand('copy');">Copy to clipboard</button>
+	</div>
+</body>
+<script src='api/fixTable.js'></script>
+<script src='api/charTable.js'></script>
+<script src='api/advanced.js'></script>
+</html>
