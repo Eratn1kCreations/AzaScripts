@@ -8,11 +8,11 @@ class ssImage{
 		this.worker = document.getElementById("worker");
 		this.preview = document.getElementById("preview");
 		this.cpr = this.preview.getContext("2d");
-		this.tess = document.createElement("canvas");
+		this.tess = document.getElementById("aaa");
 		this.cte = this.tess.getContext("2d");
 		this.chara = document.createElement("canvas");
 		this.chr = this.chara.getContext("2d");
-		this.bossc = document.createElement("canvas");
+		this.bossc = document.getElementById("bbb");
 		this.cbo = this.bossc.getContext("2d");
 		this.charaR = document.createElement("canvas");
 		this.chrR = this.charaR.getContext("2d");
