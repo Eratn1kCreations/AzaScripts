@@ -8,12 +8,14 @@ class ssImage{
 		this.worker = document.getElementById("worker");
 		this.preview = document.getElementById("preview");
 		this.cpr = this.preview.getContext("2d");
-		this.tess = document.getElementById("tesseract");
+		this.tess = document.createElement("canvas");
 		this.cte = this.tess.getContext("2d");
-		this.chara = document.getElementById("characters");
+		this.chara = document.createElement("canvas");
 		this.chr = this.chara.getContext("2d");
-		this.bossc = document.getElementById("bosse");
+		this.bossc = document.createElement("canvas");
 		this.cbo = this.bossc.getContext("2d");
+		this.charaR = document.createElement("canvas");
+		this.chrR = this.charaR.getContext("2d");
 	}
 
     loadToBuffer(filesQueue, fileNo = 0){
@@ -94,9 +96,9 @@ class ssImage{
 		img.range.w = img.range.x.b - img.range.x.a;
 		img.range.h = img.range.y.b - img.range.y.a;
 
-		img.areas = [], img.runs= [];
+		img.areas = [], img.runs = [], img.areaSquad = {left:0,width:0,spacing:0};
 		for(let i = 0; i < 5; i++){
-			img.areas.push({x: img.range.x.a, y: img.range.y.a + (i-2) * img.range.h, w: img.range.w, h: img.range.h, squad:{left:0,bottom:0,width:0}});
+			img.areas.push({x: img.range.x.a, y: img.range.y.a + (i-2) * img.range.h, w: img.range.w, h: img.range.h, top: 0});
 		}
 	}
 
@@ -132,95 +134,120 @@ class ssImage{
 			this.chr.drawImage(img.image, areaData.x, areaData.y + areaData.h * .35, 400, this.chara.height, 0, 0, 400, this.chara.height);
 			
 			let dataH = this.chr.getImageData(50, 0, 1, this.chara.height).data;
-			for(let y = this.chara.height - 10 ; y > 0; y--) { if (80 > dataH[4 * y] + dataH[4 * y + 1] + dataH[4 * y + 2]){ img.areas[attempt].squad.bottom = y; break; } }
+			for(let y = 10 ; y < this.chara.height; y++) { if (80 > dataH[4 * y] + dataH[4 * y + 1] + dataH[4 * y + 2]){ img.areas[attempt].top = y; break; } }
 
-			let dataV = this.chr.getImageData(0, img.areas[attempt].squad.bottom - 10, this.chara.width, 1).data, x2 = 0;
-			this.chr.fillStyle = "red";
-			let color = 0, colorCheck = 0, currentColor = 0;
-			for(let x = 8; x < this.chara.width-3; x++) {
-				if(color==0){
-					color = dataV[4 * x] + dataV[4 * x + 1] + dataV[4 * x + 2];
-					colorCheck = 3;
-				} else {
-					let xi = (colorCheck >= 3 ? x : x + 3);
-					currentColor = dataV[4 * xi] + dataV[4 * xi + 1] + dataV[4 * xi + 2];
-					if(currentColor > color - 5 && currentColor < color + 5 ){
-						colorCheck++;
-						if(colorCheck >= 3 && img.areas[attempt].squad.left > 0 && img.areas[attempt].squad.width == 0){
-							img.areas[attempt].squad.width = x - img.areas[attempt].squad.left;
-						}
+			if(attempt == 0){
+				let dataV = this.chr.getImageData(0, img.areas[attempt].top + 10, this.chara.width, 1).data;
+				let color = 0, colorCheck = 0, currentColor = 0;
+				for(let x = 8; x < this.chara.width-3; x++) {
+					if(color==0){
+						color = dataV[4 * x] + dataV[4 * x + 1] + dataV[4 * x + 2];
+						colorCheck = 3;
 					} else {
-						colorCheck = 0;
-						if(img.areas[attempt].squad.left == 0){
-							img.areas[attempt].squad.left = x;
-						} else if(img.areas[attempt].squad.width > 0){
-							img.areas[attempt].squad.spacing = x - img.areas[attempt].squad.left - img.areas[attempt].squad.width;
-							break;
-						}
-					}
-				}
-			}
-
-			if(img.areas[attempt].squad.width < 50 && attempt > 0){
-				img.areas[attempt].squad.width = img.areas[attempt-1].squad.width;
-				img.areas[attempt].squad.spacing = img.areas[attempt-1].squad.spacing;
-			}
-					
-			let save = false, charsArr = [];
-			for(let x = 0; x < 4; x++) {
-				let pColor = [],
-					pColorC = {r:0,g:0,b:0},
-					dataC = this.chr.getImageData(img.areas[attempt].squad.left + (img.areas[attempt].squad.width + img.areas[attempt].squad.spacing) * x, img.areas[attempt].squad.bottom - img.areas[attempt].squad.width, img.areas[attempt].squad.width, img.areas[attempt].squad.width).data;
-				
-				this.cpr.clearRect(img.areas[attempt].squad.left + (img.areas[attempt].squad.width + img.areas[attempt].squad.spacing) * x + areaData.x, areaData.y + areaData.h * .35 + img.areas[attempt].squad.bottom - img.areas[attempt].squad.width, img.areas[attempt].squad.width, img.areas[attempt].squad.width);
-
-				for(let i = 0; i < img.areas[attempt].squad.width; i += charTable.probeStep){
-					let pos = i % 2 ? 4 * (i + img.areas[attempt].squad.width * i) : 4 * (i + 1) * (img.areas[attempt].squad.width - 1);
-					pColorC.r += dataC[pos];
-					pColorC.g += dataC[pos + 1];
-					pColorC.b += dataC[pos + 2];
-					pColor.push(dataC[pos] + dataC[pos + 1] + dataC[pos + 2]);
-				}
-
-				if(!save){
-					let similarity = 0, character = "", treshholds = [100,300,500,700,900,1100], possibleCharacters = [];
-					for(let th in treshholds){
-						for (const key in charTable.aza) {
-							if(Math.abs(charTable.aza[key].r - pColorC.r) < treshholds[th] && Math.abs(charTable.aza[key].g - pColorC.g) < treshholds[th] && Math.abs(charTable.aza[key].b - pColorC.b) < treshholds[th]){
-								possibleCharacters.push(key);
-								//console.log(key + " | r " + Math.abs(charTable.aza[key].r - pColorC.r)+ " | g " + Math.abs(charTable.aza[key].g - pColorC.g)+ " | b " + Math.abs(charTable.aza[key].b - pColorC.b));
+						let xi = (colorCheck >= 3 ? x : x + 3);
+						currentColor = dataV[4 * xi] + dataV[4 * xi + 1] + dataV[4 * xi + 2];
+						if(currentColor > color - 5 && currentColor < color + 5 ){
+							colorCheck++;
+							if(colorCheck >= 3 && img.areaSquad.left > 0 && img.areaSquad.width == 0){
+								img.areaSquad.width = x - img.areaSquad.left;
+							}
+						} else {
+							colorCheck = 0;
+							if(img.areaSquad.left == 0){
+								img.areaSquad.left = x;
+							} else if(img.areaSquad.width > 0){
+								img.areaSquad.spacing = x - img.areaSquad.left - img.areaSquad.width;
+								break;
 							}
 						}
-						if (possibleCharacters.length > 0) break;
 					}
-					
-
-					switch(possibleCharacters.length){
-						case 0: break;
-						case 1: character = possibleCharacters[0]; break;
-						default:
-							possibleCharacters.forEach(key=>{
-								similarity = pColor.length;
-								charTable.aza[key].p.forEach((v,i)=>{
-									if(character != "") return;
-									if(Math.abs(pColor[i] - v) > 120){
-										similarity--;
-										if(similarity < pColor.length * 0.8) return;
-									}
-									if( i > pColor.length * 0.9 && similarity > pColor.length * 0.8) character = key;
-								});
-								if(character != "") return;
-							});
-					}
-					charsArr.push(character);
-					//console.log(attempt + "." + x + " | " + character);
-				} else {
-					pColorC.p = pColor;
-					console.log(attempt + "." + x);
-					console.log(pColorC);
 				}
-			}
+			}			
+
+			let save = true, charsArr = [];
+			for(let x = 0; x < 4; x++) {
+				let areaSize = img.areaSquad.width;
+				this.charaR.width = this.charaR.height = areaSize - 20;
+				this.chrR.drawImage(this.chara, img.areaSquad.left + (areaSize + img.areaSquad.spacing) * x + 10, img.areas[attempt].top + 10, areaSize - 20, areaSize - 20, 0, 0, areaSize - 20, areaSize - 20);
+				this.cpr.clearRect(img.areaSquad.left + (areaSize + img.areaSquad.spacing) * x + areaData.x, areaData.y + areaData.h * .35 + img.areas[attempt].top, areaSize, areaSize);
+				
+				console.log((attempt+1) + "." + (x+1), character.search(this.charaR) );
+
+				//cColor = colorThief.getPalette(this.charaR,2)[0];
+				//imageUrl = this.charaR.toDataURL();
+
+
+				/*var fp = "";
+
+				const rembrandt = new Rembrandt({
+					imageA: imageUrl,
+					imageB: fp,
+					maxOffset: 5
+				});
 			
+			  // Run the comparison
+			  rembrandt.compare()
+				.then(function (result) {
+				  	console.log((attempt+1) + "." + (x+1), 'Passed:', result.passed)
+				  	console.log((attempt+1) + "." + (x+1), 'Pixel Difference:', result.differences, 'Percentage Difference', result.percentageDifference, '%');
+			  	})
+				.catch((e) => {
+				  	console.error(e)
+				})*/
+				/*
+				charTable.test.forEach((v,i)=>{
+					const rembrandt = new Rembrandt({
+						imageA: imageUrl,
+						imageB: v.u,
+						maxOffset: 5
+					});
+				  	rembrandt.compare()
+						.then(function (result) {
+							if(result.passed)
+								console.log((attempt+1) + "." + (x+1), v.n, 'pd:', result.differences, '%d', result.percentageDifference, '%');
+						}).catch((e) => {
+							console.error(e)
+						})
+					/*let isSimmilar = true;
+					v.c.forEach((channel,i) =>{
+						isSimmilar &= Math.abs(cColor[i] - channel) <= 15; 
+					});
+					if(isSimmilar){
+						possibleCharacters.push(v.n);
+						console.log((attempt+1) + "." + (x+1),v.n,cColor,v.c)
+					}*/
+				//});
+
+				/*charTable.test.forEach((v,i)=>{
+					let isSimmilar = true;
+					v.c.forEach((channel,i) =>{
+						isSimmilar &= Math.abs(cColor[i] - channel) <= 15; 
+					});
+					if(isSimmilar){
+						possibleCharacters.push(v.n);
+						console.log((attempt+1) + "." + (x+1),v.n,cColor,v.c)
+					}
+				});*/
+
+				/*while(possibleCharacters.length > 1 && colPos < cPalette.length){
+					let filteredCharacters = [];
+					possibleCharacters.forEach((key)=>{
+						let isSimmilar = true;
+						charTable.aza[key][colPos].forEach((color,i) =>{
+							isSimmilar &= Math.abs(cPalette[colPos][i] - color) <= 8; 
+						});
+						if(isSimmilar) filteredCharacters.push(key);
+					});
+					if(filteredCharacters.length > 0) possibleCharacters = filteredCharacters;
+					colPos++;
+				}
+
+				charsArr.push((possibleCharacters.length ? possibleCharacters[0]:""));*/
+
+				//if(save) console.log((attempt+1) + "." + (x+1), possibleCharacters);
+				//console.log("==> " + (possibleCharacters.length ? possibleCharacters[0]:""));
+			}
+
 			// textRec
 			if(!save){
 				var c = new Image;
@@ -285,148 +312,13 @@ class ssImage{
 		document.getElementById("removeinfo").setAttribute("desc2","Removed " + (this.runs.length - a.length) + " duplicates");
 		document.getElementById("progress").setAttribute("desc2", ``);
 		document.getElementById("output").innerHTML = b;
-		}
+	}
 }
 
-const reader = new FileReader, ssImg = new ssImage;
+const reader = new FileReader(), ssImg = new ssImage();
 
 document.querySelector("input").addEventListener("drop", a => {
 	a.preventDefault(), ssImg.loadToBuffer(a.dataTransfer.files);
 });
 
 function processClick(){ ssImg.loadToBuffer(document.querySelector("input").files); }
-
-/*
-
-const conB = document.getElementById("baseImage"),
-	conL = document.getElementById("drawLayer"),
-	conT = document.getElementById("tesseractLayer"),
-	cB = conB.getContext("2d"),
-	cL = conL.getContext("2d"),
-	cT = conT.getContext("2d");
-cB.translate(.5, .5), cL.translate(.5, .5), cT.translate(.5, .5);
-const reader = new FileReader;
-var filesQueue = [],
-	attemptsList = [];
-document.querySelector("input").addEventListener("drop", a => {
-	a.preventDefault(), filesQueue = a.dataTransfer.files, afterClick()
-});
-
-  	function processClick(){
-    	filesQueue = document.querySelector("input").files, afterClick()
-  	}
-
-function afterClick(){
-    	attemptsList = [], document.getElementById("removeinfo").innerHTML = "", document.getElementById("output").innerHTML = "", document.getElementById("pb").setAttribute("value", 0), document.getElementById("pb").setAttribute("max", filesQueue.length), document.getElementById("progress").setAttribute("desc2", `0/${filesQueue.length}`), processFiles(0)
-  	}
-
-function processFiles(a) {
-	reader.readAsDataURL(filesQueue[a]), reader.onload = () => {
-		var b = new Image;
-		b.src = reader.result, b.onload = () => {
-			conB.width = conL.width = b.width, conB.height = conL.height = b.height;
-			var c = b.width,
-				d = b.height,
-				wh = (window.innerHeight > 0) ? window.innerHeight : screen.height,
-				ww = (window.innerWidth > 0) ? window.innerWidth : screen.width,
-				sh = d > wh*.4 ? wh*.4/d : d,
-				sw = c*sh > ww? ww/c : sh,
-				sh = c*sh > ww? sw : sh,
-				hm = ((wh*.4 - d*sh)/(wh*.4))*50;
-			cB.drawImage(b, 0, 0), cL.clearRect(0, 0, b.width, b.height), detectBattleLogArea(c, d, a + 1), document.querySelectorAll("canvas").forEach(e => e.setAttribute("style", `transform:scale(${sw},${sh}) translate(-50%, ${hm}%)`))
-        }
-	}
-}
-
-function detectBattleLogArea(a, b, c) {
-	let d = Math.floor(b / 2),
-		e = Math.floor(a / 2),
-		f = [0, 0];
-	var g = cB.getImageData(0, d, a, 1).data;
-	for(let d = e; d < a; d++) {
-		if(0 == f[0]) {
-			let a = e - d % e;
-			80 > g[4 * a] + g[4 * a + 1] + g[4 * a + 2] && (f[0] = a)
-		}
-		if(0 == f[1] && 80 > g[4 * d] + g[4 * d + 1] + g[4 * d + 2] && (f[1] = d), 0 < f[0] && 0 < f[1]) break
-	}
-	let h = [0, 0];
-	g = cB.getImageData(e, 0, 1, b).data;
-	for(let e = d; e < b; e++) {
-		if(0 == h[0]) {
-			let a = d - e % d;
-			80 > g[4 * a] + g[4 * a + 1] + g[4 * a + 2] && (h[0] = a)
-		}
-		if(0 == h[1] && 80 > g[4 * e] + g[4 * e + 1] + g[4 * e + 2] && (h[1] = e), 0 < h[0] && 0 < h[1]) break
-	}
-	let i = {
-		x: f[0],
-		y: h[0] - 2,
-		w: f[1] - f[0],
-		h: h[1] - h[0] + 4
-	};
-	ocrData(i, c)
-}
-
-function ocrData(a, b) {
-	conT.width = a.w, conT.height = 5 * a.h, cT.drawImage(conB, a.x, a.y - 2 * a.h, a.w, 5 * a.h, 0, 0, a.w, 5 * a.h), cT.fillStyle = "black";
-	for(let c = 0; 5 > c; c++) markArea(a, c), cT.fillRect(0, a.h * (c + .35), 400, .65 * a.h), cT.fillRect(a.w - 400, a.h * (c + .35), 400, .65 * a.h);
-	toGrayAndContrast(5);
-	var c = new Image;
-	c.src = conT.toDataURL(), c.onload = () => {
-		Tesseract.recognize(c, "eng",{ logger: m => console.log(m) }).then(({
-			data: {
-				text: a
-			}
-		}) => {
-			textOperations(a, b)
-		})
-	}
-}
-
-function toGrayAndContrast(a = 1) {
-	let b = cT.getImageData(0, 0, conT.width, conT.height),
-		c = b.data;
-	for(var d, e = 0; e < c.length; e += 4) d = (c[e] + c[e + 1] + c[e + 2]) / 3, c[e] = c[e + 1] = c[e + 2] = 255 - 255 * ((d / 255 - .5) * a + .5);
-	cT.putImageData(b, 0, 0)
-}
-
-function markArea(a, b) {
-	cL.fillStyle = b % 2 ? "rgba(255,0,0,.25)" : "rgba(0,255,0,.25)", cL.fillRect(a.x, a.y + (b - 2) * a.h, a.w, a.h), cL.fillStyle = "rgba(0,0,0,.55)", cL.fillRect(a.x, a.y + a.h * (b - 2 + .35), 400, .65 * a.h), cL.fillRect(a.x + a.w - 400, a.y + a.h * (b - 2 + .35), 400, .65 * a.h)
-}
-
-function textOperations(a, b) {
-	let c = {
-			name: "",
-			lv: "",
-			boss: "",
-			dmg: ""
-		},
-		d = [];
-	a.split("\n").forEach(a => {
-		let b = a.split(" ");
-		if(2 < b.length) {
-			let a = 0;
-			b.forEach(b => {
-				0 == a ? (a++, c.name = b in fixTable ? fixTable[b] : b) : 1 === a ? b.includes("Lv.") && (a++, c.lv = b.split(".")[1]) : 2 === a ? (a++, c.boss = b) : 3 === a ? c.boss += " " + b : void 0
-			})
-		} else 1 < b.length && (c.dmg = b[0].replaceAll(",", ""), d.push({...c
-		}), c = {
-			name: "",
-			lv: "",
-			boss: "",
-			dmg: ""
-		})
-	});
-	if(d.length < 5) alert(`There was problem with reading the file!\n Filename: ${filesQueue[b-1].name}`);
-	for(let c = d.length - 1; 0 <= c; c--) attemptsList.push(d[c]);
-	document.getElementById("progress").setAttribute("desc2", `${b}/${filesQueue.length}`), document.getElementById("pb").setAttribute("value", b), b < filesQueue.length ? processFiles(b) : printOutput()
-}
-
-function printOutput() {
-	let a = attemptsList.reduce((a, b) => a.some(a => JSON.stringify(b) === JSON.stringify(a)) ? a : [...a, b], []),
-		b = "";
-	a.forEach(a => {
-		b += a.name + "\t" + a.dmg + "\t" + a.boss + "\t" + a.lv + "\n"
-	}), document.getElementById("removeinfo").setAttribute("desc2","Removed " + (attemptsList.length - a.length) + " duplicates"), document.getElementById("output").innerHTML = b
-}*/

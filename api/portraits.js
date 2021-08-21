@@ -1,9 +1,8 @@
 class Characters{
     pImage = new Image;
-    charP = document.createElement("canvas");
-    list = [];
-
-    parseNames = [
+    mapCharacters = document.createElement("canvas");
+    mapSize = {x:8,y:16};
+    mapNames = [
         "Marina","Akayuki","Mayreel","Rie","Lynn","Fei","Mei","Tinia",
         "Favi","Lilith","Lavi","Marvin","Ranpang","Ranpang","Girgas","",
         "","","Nari","Nari","Eleanor","Eugene","Miya","Miya",
@@ -22,28 +21,39 @@ class Characters{
         "","","","","","","",""
     ];
 
-    parseSize = {w:80,x:8,y:16};
-
     constructor(filename = 'api/portraits.png'){
-        this.charP.width = this.charP.height = this.parseSize.w;
-        this.charx = this.charP.getContext("2d");
-
+        this.mpaCtx = this.mapCharacters.getContext("2d");
         this.pImage.src = filename;
         this.pImage.onload = () => {
-            for(let i = 0; i < this.parseSize.x*this.parseSize.y;i++){
-                if(this.parseNames[i] !== "" | undefined | null){
-                    let x = i % this.parseSize.x * this.parseSize.w, y = Math.floor(i / this.parseSize.x) * this.parseSize.w;
-                    this.charx.fillRect(0,0,this.parseSize.w,this.parseSize.w);
-                    this.charx.drawImage(this.pImage,x,y,128,128,0,0,this.parseSize.w,this.parseSize.w);
-                    this.list.push({n:this.parseNames[i], c: colorThief.getPalette(this.charP,2)[0], u: this.charP.toDataURL()});
-                }
-            }
+            this.mapCharacters.width = this.pImage.width;
+            this.mapCharacters.height = this.pImage.height;
+            this.mapSize.w = this.pImage.width / this.mapSize.x;
+            this.mapSize.w2 = this.mapSize.w / 2;
+            this.mpaCtx.fillRect(0,0,this.pImage.width,this.pImage.height);
+            this.mpaCtx.drawImage(this.pImage,0,0);
         }
 	}
+
+    cvReady(){
+        cv['onRuntimeInitialized']=()=>{
+            this.src = cv.imread(this.mapCharacters);
+            this.dst = new cv.Mat();
+            this.mask = new cv.Mat();
+            document.getElementById("disableBlock").className = "hide";
+        };
+    }
     
-    getList(){
-        return this.list;
+    search(character){
+        let templ = cv.imread(character);
+        cv.matchTemplate(this.src, templ, this.dst, cv.TM_CCOEFF_NORMED , this.mask);
+        return pointToName(cv.minMaxLoc(this.dst, this.mask).maxLoc);
+    }
+
+    pointToName(point){
+        let x = Math.floor((point.x + mapSize.w2) / mapSize.w),
+            y = Math.floor((point.y + mapSize.w2) / mapSize.w);
+        return this.mapNames[x + y * this.mapSize.x];
     }
 }
 
-const colorThief = new ColorThief(), characters = new Characters();
+const character = new Characters("https://eratn1kcreations.github.io/AzaScripts/api/portraits.png");
