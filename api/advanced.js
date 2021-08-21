@@ -167,8 +167,8 @@ class ssImage{
 			let doOcr = true, logs = true, charsArr = [];
 			for(let x = 0; x < 4; x++) {
 				let areaSize = img.areaGen.width;
-				this.charaR.width = this.charaR.height = areaSize - 20;
-				this.chrR.drawImage(this.chara, img.areaGen.left + (areaSize + img.areaGen.spacing) * x + 10, img.areas[attempt].top + 10, areaSize - 20, areaSize - 20, 0, 0, areaSize - 20, areaSize - 20);
+				this.charaR.width = this.charaR.height = 48;
+				this.chrR.drawImage(this.chara, img.areaGen.left + (areaSize + img.areaGen.spacing) * x + 10, img.areas[attempt].top + 10, areaSize - 20, areaSize - 20, 0, 0, 48, 48);
 				this.cpr.clearRect(img.areaGen.left + (areaSize + img.areaGen.spacing) * x + areaData.x, areaData.y + genData.h * .35 + img.areas[attempt].top, areaSize, areaSize);
 				
 				let charName = character.search(this.charaR);
