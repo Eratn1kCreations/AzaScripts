@@ -8,11 +8,11 @@ class ssImage{
 		this.worker = document.getElementById("worker");
 		this.preview = document.getElementById("preview");
 		this.cpr = this.preview.getContext("2d");
-		this.tess = document.getElementById("aaa");
+		this.tess = document.createElement("canvas");
 		this.cte = this.tess.getContext("2d");
 		this.chara = document.createElement("canvas");
 		this.chr = this.chara.getContext("2d");
-		this.bossc = document.getElementById("bbb");
+		this.bossc = document.createElement("canvas");
 		this.cbo = this.bossc.getContext("2d");
 		this.charaR = document.createElement("canvas");
 		this.chrR = this.charaR.getContext("2d");
@@ -183,12 +183,13 @@ class ssImage{
 					Tesseract.recognize(c, "eng").then(({
 						data: { text: b }
 					}) => {
+						if(logs) console.log((attempt+1) + "." + (x+1), b);
 						c.src = this.tess.toDataURL(), c.onload = () => {
 							Tesseract.recognize(c, "eng").then(({
 								data: { text: a }
 							}) => {
+								if(logs) console.log((attempt+1) + "." + (x+1), a);
 								this.textOperations(a,b,img,charsArr);
-								if(logs) console.log((attempt+1) + "." + (x+1), a, b);
 								this.ocrAttempt(img,imageNo,attempt + 1);
 							})
 						}
