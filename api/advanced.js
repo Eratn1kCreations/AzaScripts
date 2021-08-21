@@ -164,88 +164,16 @@ class ssImage{
 				}
 			}			
 
-			let save = true, charsArr = [];
+			let save = true, logs = false, charsArr = [];
 			for(let x = 0; x < 4; x++) {
 				let areaSize = img.areaSquad.width;
 				this.charaR.width = this.charaR.height = areaSize - 20;
 				this.chrR.drawImage(this.chara, img.areaSquad.left + (areaSize + img.areaSquad.spacing) * x + 10, img.areas[attempt].top + 10, areaSize - 20, areaSize - 20, 0, 0, areaSize - 20, areaSize - 20);
 				this.cpr.clearRect(img.areaSquad.left + (areaSize + img.areaSquad.spacing) * x + areaData.x, areaData.y + areaData.h * .35 + img.areas[attempt].top, areaSize, areaSize);
 				
-				console.log((attempt+1) + "." + (x+1), character.search(this.charaR) );
-
-				//cColor = colorThief.getPalette(this.charaR,2)[0];
-				//imageUrl = this.charaR.toDataURL();
-
-
-				/*var fp = "";
-
-				const rembrandt = new Rembrandt({
-					imageA: imageUrl,
-					imageB: fp,
-					maxOffset: 5
-				});
-			
-			  // Run the comparison
-			  rembrandt.compare()
-				.then(function (result) {
-				  	console.log((attempt+1) + "." + (x+1), 'Passed:', result.passed)
-				  	console.log((attempt+1) + "." + (x+1), 'Pixel Difference:', result.differences, 'Percentage Difference', result.percentageDifference, '%');
-			  	})
-				.catch((e) => {
-				  	console.error(e)
-				})*/
-				/*
-				charTable.test.forEach((v,i)=>{
-					const rembrandt = new Rembrandt({
-						imageA: imageUrl,
-						imageB: v.u,
-						maxOffset: 5
-					});
-				  	rembrandt.compare()
-						.then(function (result) {
-							if(result.passed)
-								console.log((attempt+1) + "." + (x+1), v.n, 'pd:', result.differences, '%d', result.percentageDifference, '%');
-						}).catch((e) => {
-							console.error(e)
-						})
-					/*let isSimmilar = true;
-					v.c.forEach((channel,i) =>{
-						isSimmilar &= Math.abs(cColor[i] - channel) <= 15; 
-					});
-					if(isSimmilar){
-						possibleCharacters.push(v.n);
-						console.log((attempt+1) + "." + (x+1),v.n,cColor,v.c)
-					}*/
-				//});
-
-				/*charTable.test.forEach((v,i)=>{
-					let isSimmilar = true;
-					v.c.forEach((channel,i) =>{
-						isSimmilar &= Math.abs(cColor[i] - channel) <= 15; 
-					});
-					if(isSimmilar){
-						possibleCharacters.push(v.n);
-						console.log((attempt+1) + "." + (x+1),v.n,cColor,v.c)
-					}
-				});*/
-
-				/*while(possibleCharacters.length > 1 && colPos < cPalette.length){
-					let filteredCharacters = [];
-					possibleCharacters.forEach((key)=>{
-						let isSimmilar = true;
-						charTable.aza[key][colPos].forEach((color,i) =>{
-							isSimmilar &= Math.abs(cPalette[colPos][i] - color) <= 8; 
-						});
-						if(isSimmilar) filteredCharacters.push(key);
-					});
-					if(filteredCharacters.length > 0) possibleCharacters = filteredCharacters;
-					colPos++;
-				}
-
-				charsArr.push((possibleCharacters.length ? possibleCharacters[0]:""));*/
-
-				//if(save) console.log((attempt+1) + "." + (x+1), possibleCharacters);
-				//console.log("==> " + (possibleCharacters.length ? possibleCharacters[0]:""));
+				let charName = character.search(this.charaR);
+				charsArr.push(charName);
+				if(logs) console.log((attempt+1) + "." + (x+1), charName);
 			}
 
 			// textRec
@@ -275,7 +203,6 @@ class ssImage{
 	}
 
 	textOperations(a,s,img,chars) {
-		//console.log(a);
 		let c = {
 				name: "",
 				lv: "",
@@ -305,7 +232,6 @@ class ssImage{
 	printOutput() {
 		let a = this.runs.reduce((a, b) => a.some(a => JSON.stringify(b) === JSON.stringify(a)) ? a : [...a, b], []),
 			b = "";
-		//console.log(a);
 		a.forEach(a => {
 			b += a.name + "\t" + a.dmg + "\t" + a.boss + "\t" + a.lv + "\t" + a.fin + "\t" + a.char[0] + "\t" + a.char[1] + "\t" + a.char[2] + "\t" + a.char[3] + "\n"
 		});
