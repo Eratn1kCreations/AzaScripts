@@ -164,7 +164,7 @@ class ssImage{
 				}
 			}			
 
-			let save = true, logs = false, charsArr = [];
+			let doOcr = true, logs = false, charsArr = [];
 			for(let x = 0; x < 4; x++) {
 				let areaSize = img.areaSquad.width;
 				this.charaR.width = this.charaR.height = areaSize - 20;
@@ -177,7 +177,7 @@ class ssImage{
 			}
 
 			// textRec
-			if(!save){
+			if(doOcr){
 				var c = new Image;
 				c.src = this.bossc.toDataURL(), c.onload = () => {
 					Tesseract.recognize(c, "eng").then(({
