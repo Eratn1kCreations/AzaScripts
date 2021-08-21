@@ -127,7 +127,7 @@ class ssImage{
 			this.cte.fillStyle = "black";
 			this.cte.fillRect(0,  genData.h * .35, 400, .65 *  genData.h);
 			this.cte.fillRect( genData.w - 400,  genData.h * .35, 400, .65 *  genData.h);
-			this.toGrayAndContrast(5);			
+			this.toGrayAndContrast(5);
 			
 			// charRec
 			this.chara.width = 400, this.chara.height = genData.h * .65;
@@ -164,7 +164,7 @@ class ssImage{
 				}
 			}			
 
-			let doOcr = true, logs = false, charsArr = [];
+			let doOcr = true, logs = true, charsArr = [];
 			for(let x = 0; x < 4; x++) {
 				let areaSize = img.areaGen.width;
 				this.charaR.width = this.charaR.height = areaSize - 20;
@@ -188,6 +188,7 @@ class ssImage{
 								data: { text: a }
 							}) => {
 								this.textOperations(a,b,img,charsArr);
+								if(logs) console.log((attempt+1) + "." + (x+1), a, b);
 								this.ocrAttempt(img,imageNo,attempt + 1);
 							})
 						}
