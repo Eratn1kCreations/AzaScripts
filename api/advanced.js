@@ -183,12 +183,10 @@ class ssImage{
 					Tesseract.recognize(c, "eng").then(({
 						data: { text: b }
 					}) => {
-						if(logs) console.log((attempt+1) + "." + (x+1), b);
 						c.src = this.tess.toDataURL(), c.onload = () => {
 							Tesseract.recognize(c, "eng").then(({
 								data: { text: a }
 							}) => {
-								if(logs) console.log((attempt+1) + "." + (x+1), a);
 								this.textOperations(a,b,img,charsArr);
 								this.ocrAttempt(img,imageNo,attempt + 1);
 							})
