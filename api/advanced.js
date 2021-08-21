@@ -96,16 +96,16 @@ class ssImage{
 		img.range.w = img.range.x.b - img.range.x.a;
 		img.range.h = img.range.y.b - img.range.y.a;
 
-		img.areas = [], img.runs = [], img.areaSquad = {left:0,width:0,spacing:0};
+		img.areas = [], img.runs = [], img.areaGen = {left:0,width:0,spacing:0,w:img.range.w,h:img.range.h};
 		for(let i = 0; i < 5; i++){
-			img.areas.push({x: img.range.x.a, y: img.range.y.a + (i-2) * img.range.h, w: img.range.w, h: img.range.h, top: 0});
+			img.areas.push({x: img.range.x.a, y: img.range.y.a + (i-2) * img.range.h, top: 0});
 		}
 	}
 
 	markArea(img) {
 		for(let i = 0; i < 5; i++){
 			this.cpr.fillStyle = i % 2 ? "rgba(255,0,0,.25)" : "rgba(0,255,0,.25)";
-			this.cpr.fillRect(img.areas[i].x, img.areas[i].y, img.areas[i].w, img.areas[i].h);
+			this.cpr.fillRect(img.areas[i].x, img.areas[i].y, img.genData.w, img.genData.h);
 		}
 	}
 
@@ -114,24 +114,24 @@ class ssImage{
 			this.processedCount++;
 			document.getElementById("pb").setAttribute("value", this.processedCount);
 			document.getElementById("progress").setAttribute("desc2", `${Math.floor(this.processedCount/5)}.${this.processedCount%5}/${this.images.length}`);
-			let areaData = img.areas[attempt];
+			let areaData = img.areas[attempt],  genData = img.areaGen;
 			
 			// finisherRec
-			this.bossc.width = 100, this.bossc.height = areaData.h * .65;
-			this.cbo.drawImage(img.image, areaData.x + areaData.w - this.bossc.width * 2, areaData.y + areaData.h * .35, this.bossc.width, this.bossc.height, 0, 0, this.bossc.width, this.bossc.height);
+			this.bossc.width = 100, this.bossc.height = genData.h * .65;
+			this.cbo.drawImage(img.image, areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height, 0, 0, this.bossc.width, this.bossc.height);
 			this.toGrayAndContrast(75, this.cbo, this.bossc);
 
 			// ocr text
-			this.tess.width = img.range.w, this.tess.height = img.range.h + areaData.h * .65;
-			this.cte.drawImage(img.image, areaData.x, areaData.y, areaData.w, areaData.h, 0, 0, areaData.w, areaData.h);
+			this.tess.width = img.range.w, this.tess.height = img.range.h + genData.h * .65;
+			this.cte.drawImage(img.image, areaData.x, areaData.y, genData.w, genData.h, 0, 0, genData.w, genData.h);
 			this.cte.fillStyle = "black";
-			this.cte.fillRect(0,  areaData.h * .35, 400, .65 *  areaData.h);
-			this.cte.fillRect( areaData.w - 400,  areaData.h * .35, 400, .65 *  areaData.h);
+			this.cte.fillRect(0,  genData.h * .35, 400, .65 *  genData.h);
+			this.cte.fillRect( genData.w - 400,  genData.h * .35, 400, .65 *  genData.h);
 			this.toGrayAndContrast(5);			
 			
 			// charRec
-			this.chara.width = 400, this.chara.height = areaData.h * .65;
-			this.chr.drawImage(img.image, areaData.x, areaData.y + areaData.h * .35, 400, this.chara.height, 0, 0, 400, this.chara.height);
+			this.chara.width = 400, this.chara.height = genData.h * .65;
+			this.chr.drawImage(img.image, areaData.x, areaData.y + genData.h * .35, 400, this.chara.height, 0, 0, 400, this.chara.height);
 			
 			let dataH = this.chr.getImageData(50, 0, 1, this.chara.height).data;
 			for(let y = 10 ; y < this.chara.height; y++) { if (80 > dataH[4 * y] + dataH[4 * y + 1] + dataH[4 * y + 2]){ img.areas[attempt].top = y; break; } }
@@ -148,15 +148,15 @@ class ssImage{
 						currentColor = dataV[4 * xi] + dataV[4 * xi + 1] + dataV[4 * xi + 2];
 						if(currentColor > color - 5 && currentColor < color + 5 ){
 							colorCheck++;
-							if(colorCheck >= 3 && img.areaSquad.left > 0 && img.areaSquad.width == 0){
-								img.areaSquad.width = x - img.areaSquad.left;
+							if(colorCheck >= 3 && img.areaGen.left > 0 && img.areaGen.width == 0){
+								img.areaGen.width = x - img.areaGen.left;
 							}
 						} else {
 							colorCheck = 0;
-							if(img.areaSquad.left == 0){
-								img.areaSquad.left = x;
-							} else if(img.areaSquad.width > 0){
-								img.areaSquad.spacing = x - img.areaSquad.left - img.areaSquad.width;
+							if(img.areaGen.left == 0){
+								img.areaGen.left = x;
+							} else if(img.areaGen.width > 0){
+								img.areaGen.spacing = x - img.areaGen.left - img.areaGen.width;
 								break;
 							}
 						}
@@ -166,10 +166,10 @@ class ssImage{
 
 			let doOcr = true, logs = false, charsArr = [];
 			for(let x = 0; x < 4; x++) {
-				let areaSize = img.areaSquad.width;
+				let areaSize = img.areaGen.width;
 				this.charaR.width = this.charaR.height = areaSize - 20;
-				this.chrR.drawImage(this.chara, img.areaSquad.left + (areaSize + img.areaSquad.spacing) * x + 10, img.areas[attempt].top + 10, areaSize - 20, areaSize - 20, 0, 0, areaSize - 20, areaSize - 20);
-				this.cpr.clearRect(img.areaSquad.left + (areaSize + img.areaSquad.spacing) * x + areaData.x, areaData.y + areaData.h * .35 + img.areas[attempt].top, areaSize, areaSize);
+				this.chrR.drawImage(this.chara, img.areaGen.left + (areaSize + img.areaGen.spacing) * x + 10, img.areas[attempt].top + 10, areaSize - 20, areaSize - 20, 0, 0, areaSize - 20, areaSize - 20);
+				this.cpr.clearRect(img.areaGen.left + (areaSize + img.areaGen.spacing) * x + areaData.x, areaData.y + genData.h * .35 + img.areas[attempt].top, areaSize, areaSize);
 				
 				let charName = character.search(this.charaR);
 				charsArr.push(charName);
