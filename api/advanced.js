@@ -16,10 +16,6 @@ class ssImage{
 		this.cbo = this.bossc.getContext("2d");
 		this.charaR = document.createElement("canvas");
 		this.chrR = this.charaR.getContext("2d");
-
-		window.addEventListener('resize', function(event) {
-			this.canvasRescale()
-		}, true);
 	}
 
     loadToBuffer(filesQueue, fileNo = 0){
@@ -257,5 +253,8 @@ const reader = new FileReader(), ssImg = new ssImage();
 document.querySelector("input").addEventListener("drop", a => {
 	a.preventDefault(), ssImg.loadToBuffer(a.dataTransfer.files);
 });
+window.addEventListener('resize', function(event) {
+	ssImg.canvasRescale()
+}, true);
 
 function processClick(){ ssImg.loadToBuffer(document.querySelector("input").files); }
