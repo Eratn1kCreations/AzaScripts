@@ -46,4 +46,4 @@ class Characters{
     }
 }
 
-const characters = new Characters();
+const colorThief = new ColorThief(), characters = new Characters();
