@@ -105,7 +105,7 @@ class ssImage{
 	markArea(img) {
 		for(let i = 0; i < 5; i++){
 			this.cpr.fillStyle = i % 2 ? "rgba(255,0,0,.25)" : "rgba(0,255,0,.25)";
-			this.cpr.fillRect(img.areas[i].x, img.areas[i].y, img.genData.w, img.genData.h);
+			this.cpr.fillRect(img.areas[i].x, img.areas[i].y, img.areaGen.w, img.areaGen.h);
 		}
 	}
 
