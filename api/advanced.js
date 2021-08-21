@@ -16,6 +16,10 @@ class ssImage{
 		this.cbo = this.bossc.getContext("2d");
 		this.charaR = document.createElement("canvas");
 		this.chrR = this.charaR.getContext("2d");
+
+		window.addEventListener('resize', function(event) {
+			this.canvasRescale()
+		}, true);
 	}
 
     loadToBuffer(filesQueue, fileNo = 0){
@@ -61,6 +65,13 @@ class ssImage{
 			sh = newImg.offsetHeight / h;
 		this.preview.width = w, this.preview.height = h, this.preview.setAttribute("style", `transform:scale(${sw},${sh})`);
 		this.cpr.clearRect(0, 0, w, h);
+	}
+
+	canvasRescale(){
+		let newImg = document.getElementById("pImg"),
+			sw = newImg.offsetWidth / this.images[0].width,
+			sh = newImg.offsetHeight / this.images[0].height;
+		this.preview.setAttribute("style", `transform:scale(${sw},${sh})`);
 	}
 
 	detectBattleLogRecords(img) {
