@@ -50,8 +50,8 @@ class Characters{
     }
 
     pointToName(point){
-        let x = Math.floor((point.x + mapSize.w2) / mapSize.w),
-            y = Math.floor((point.y + mapSize.w2) / mapSize.w);
+        let x = Math.floor((point.x + this.mapSize.w2) / this.mapSize.w),
+            y = Math.floor((point.y + this.mapSize.w2) / this.mapSize.w);
         return this.mapNames[x + y * this.mapSize.x];
     }
 }
