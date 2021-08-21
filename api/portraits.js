@@ -46,7 +46,7 @@ class Characters{
     search(character){
         let templ = cv.imread(character);
         cv.matchTemplate(this.src, templ, this.dst, cv.TM_CCOEFF_NORMED , this.mask);
-        return pointToName(cv.minMaxLoc(this.dst, this.mask).maxLoc);
+        return this,.pointToName(cv.minMaxLoc(this.dst, this.mask).maxLoc);
     }
 
     pointToName(point){
