@@ -35,7 +35,7 @@ class Characters{
                     let x = i % this.parseSize.x * this.parseSize.w, y = Math.floor(i / this.parseSize.x) * this.parseSize.w;
                     this.charx.fillRect(0,0,this.parseSize.w,this.parseSize.w);
                     this.charx.drawImage(this.pImage,x,y,128,128,0,0,this.parseSize.w,this.parseSize.w);
-                    this.list.push({n:this.parseNames[i], c: colorThief.getColor(this.charP,2), u: this.charP.toDataURL()});
+                    this.list.push({n:this.parseNames[i], c: colorThief.getPalette(this.charP,2)[0], u: this.charP.toDataURL()});
                 }
             }
         }
