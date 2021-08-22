@@ -225,7 +225,7 @@ class ssImage{
 				b.forEach(b => {
 					0 == a ? (a++, c.name = b in fixTable ? fixTable[b] : b) : 1 === a ? b.includes("Lv.") && (a++, c.lv = b.split(".")[1]) : 2 === a ? (a++, c.boss = b) : 3 === a ? c.boss += " " + b : void 0
 				})
-			} else 1 < b.length && (c.dmg = b[0].replaceAll(",", "").replaceAll("`", "").replaceAll("’", ""), img.runs.push({...c}))
+			} else 1 < b.length && (c.dmg = b[0].replaceAll("[^0-9]", ""), img.runs.push({...c}))
 		});
 	}
 
