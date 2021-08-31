@@ -33,7 +33,7 @@
 	</div>
 	<div id="outputBlock" class="etq" desc="Raid attempts output:">
 		<textarea id="output" disabled></textarea>
-		<button onclick="document.querySelector('textarea').select();document.execCommand('copy');">Copy to clipboard</button>
+		<button onclick="let tx = document.querySelector('textarea'); tx.disabled = false, tx.select(), document.execCommand('copy'), tx.disabled = true">Copy to clipboard</button>
 	</div>
 </body>
 <script src='api/advanced.js'></script>
