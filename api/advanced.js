@@ -8,14 +8,21 @@ class ssImage{
 		this.worker = document.getElementById("worker");
 		this.preview = document.getElementById("preview");
 		this.cpr = this.preview.getContext("2d");
+		this.cpr.translate(.5, .5);
 		this.tess = document.createElement("canvas");
 		this.cte = this.tess.getContext("2d");
+		this.cte.translate(.5, .5);
 		this.chara = document.createElement("canvas");
 		this.chr = this.chara.getContext("2d");
+		this.chr.translate(.5, .5);
 		this.bossc = document.createElement("canvas");
 		this.cbo = this.bossc.getContext("2d");
+		this.cbo.translate(.5, .5);
 		this.charaR = document.createElement("canvas");
 		this.chrR = this.charaR.getContext("2d");
+		this.chrR.translate(.5, .5);
+		this.progress = document.getElementById("progress");
+		this.progressBar = document.getElementById("pb");
 	}
 
     loadToBuffer(filesQueue, fileNo = 0){
@@ -35,7 +42,7 @@ class ssImage{
                 }
             }
         } else {
-			document.getElementById("pb").setAttribute("max", this.images.length * 5);
+			this.progressBar.setAttribute("max", this.images.length * 5);
             this.processImages();
         }
     }
@@ -45,7 +52,7 @@ class ssImage{
 			this.displayImage(this.images[imageNo].image);
 			this.detectBattleLogRecords(this.images[imageNo]);
 			this.markArea(this.images[imageNo]);
-			this.ocrAttempt(this.images[imageNo],imageNo);
+			this.ocrImage(this.images[imageNo], imageNo);
 		} else {
 			this.printOutput();
 		}
@@ -64,10 +71,12 @@ class ssImage{
 	}
 
 	canvasRescale(){
-		let newImg = document.getElementById("pImg"),
-			sw = newImg.offsetWidth / this.images[0].width,
+		let newImg = document.getElementById("pImg");
+		if(newImg != null | undefined){
+			let sw = newImg.offsetWidth / this.images[0].width,
 			sh = newImg.offsetHeight / this.images[0].height;
-		this.preview.setAttribute("style", `transform:scale(${sw},${sh})`);
+			this.preview.setAttribute("style", `transform:scale(${sw},${sh})`);
+		}
 	}
 
 	detectBattleLogRecords(img) {
@@ -103,7 +112,7 @@ class ssImage{
 		img.range.w = img.range.x.b - img.range.x.a;
 		img.range.h = img.range.y.b - img.range.y.a;
 
-		img.areas = [], img.runs = [], img.areaGen = {left:0,width:0,spacing:0,w:img.range.w,h:img.range.h};
+		img.areas = [], img.runsText = [], img.runsChars = [], img.runsFins = [], img.areaGen = {left:0,width:0,spacing:0,w:img.range.w,h:img.range.h};
 		for(let i = 0; i < 5; i++){
 			img.areas.push({x: img.range.x.a, y: img.range.y.a + (i-2) * img.range.h, top: 0});
 		}
@@ -116,117 +125,151 @@ class ssImage{
 		}
 	}
 
-	ocrAttempt(img,imageNo,attempt=0){
-		if(attempt < 5){
-			this.processedCount++;
-			document.getElementById("pb").setAttribute("value", this.processedCount);
-			document.getElementById("progress").setAttribute("desc2", `${Math.floor(this.processedCount/5)}.${this.processedCount%5}/${this.images.length}`);
-			let areaData = img.areas[attempt],  genData = img.areaGen;
-			
-			// finisherRec
-			this.bossc.width = 100, this.bossc.height = genData.h * .65;
-			this.cbo.drawImage(img.image, areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height, 0, 0, this.bossc.width, this.bossc.height);
-			this.toGrayAndContrast(75, this.cbo, this.bossc);
-
-			// ocr text
-			this.tess.width = img.range.w, this.tess.height = img.range.h + genData.h * .65;
-			this.cte.drawImage(img.image, areaData.x, areaData.y, genData.w, genData.h, 0, 0, genData.w, genData.h);
-			this.cte.fillStyle = "black";
-			this.cte.fillRect(0,  genData.h * .35, 400, .65 *  genData.h);
-			this.cte.fillRect( genData.w - 400,  genData.h * .35, 400, .65 *  genData.h);
-			this.toGrayAndContrast(5);
-			
-			// charRec
-			this.chara.width = 400, this.chara.height = genData.h * .65;
-			this.chr.drawImage(img.image, areaData.x, areaData.y + genData.h * .35, 400, this.chara.height, 0, 0, 400, this.chara.height);
-			
-			let dataH = this.chr.getImageData(50, 0, 1, this.chara.height).data;
-			for(let y = 10 ; y < this.chara.height; y++) { if (80 > dataH[4 * y] + dataH[4 * y + 1] + dataH[4 * y + 2]){ img.areas[attempt].top = y; break; } }
-
-			if(attempt == 0){
-				let dataV = this.chr.getImageData(0, img.areas[attempt].top + 10, this.chara.width, 1).data;
-				let color = 0, colorCheck = 0, currentColor = 0;
-				for(let x = 8; x < this.chara.width-3; x++) {
-					if(color==0){
-						color = dataV[4 * x] + dataV[4 * x + 1] + dataV[4 * x + 2];
-						colorCheck = 3;
-					} else {
-						let xi = (colorCheck >= 3 ? x : x + 3);
-						currentColor = dataV[4 * xi] + dataV[4 * xi + 1] + dataV[4 * xi + 2];
-						if(currentColor > color - 5 && currentColor < color + 5 ){
-							colorCheck++;
-							if(colorCheck >= 3 && img.areaGen.left > 0 && img.areaGen.width == 0){
-								img.areaGen.width = x - img.areaGen.left;
-							}
-						} else {
-							colorCheck = 0;
-							if(img.areaGen.left == 0){
-								img.areaGen.left = x;
-							} else if(img.areaGen.width > 0){
-								img.areaGen.spacing = x - img.areaGen.left - img.areaGen.width;
-								break;
-							}
-						}
-					}
-				}
-			}			
-
-			let doOcr = true, logs = true, charsArr = [];
-			for(let x = 0; x < 4; x++) {
-				let areaSize = img.areaGen.width;
-				this.charaR.width = this.charaR.height = 48;
-				this.chrR.drawImage(this.chara, img.areaGen.left + (areaSize + img.areaGen.spacing) * x + 10, img.areas[attempt].top + 10, areaSize - 20, areaSize - 20, 0, 0, 48, 48);
-				this.cpr.clearRect(img.areaGen.left + (areaSize + img.areaGen.spacing) * x + areaData.x, areaData.y + genData.h * .35 + img.areas[attempt].top, areaSize, areaSize);
-				
-				let charName = character.search(this.charaR);
-				charsArr.push(charName);
-				if(logs) console.log((attempt+1) + "." + (x+1), charName);
-			}
-
-			// textRec
-			if(doOcr){
-				var c = new Image;
-				c.src = this.bossc.toDataURL(), c.onload = () => {
-					Tesseract.recognize(c, "eng").then(({
-						data: { text: b }
-					}) => {
-						c.src = this.tess.toDataURL(), c.onload = () => {
-							Tesseract.recognize(c, "eng").then(({
-								data: { text: a }
-							}) => {
-								this.textOperations(a,b,img,charsArr);
-								this.ocrAttempt(img,imageNo,attempt + 1);
-							})
-						}
-					})
-				}
-			} else {
-				this.ocrAttempt(img,imageNo,attempt + 1);
-			}
+	ocrImage(img, imageNo, attempt = 0){
+		if(attempt<5){
+			Promise.all([this.ocrText(img,attempt),this.ocrHeroes(img,attempt),this.ocrBosses(img,attempt)]).then((ocrRes) => {
+				this.processedCount++;
+				this.progressBar.setAttribute("value", this.processedCount);
+				this.progress.setAttribute("desc2", `${imageNo + 1}.${attempt + 1} / ${this.images.length} `);
+				this.ocrImage(img, imageNo, attempt + 1);
+			});
 		} else {
-			for(let c = img.runs.length - 1; 0 <= c; c--) this.runs.push(img.runs[c]);
+			for(let i = 4; i >= 0; i--){
+				let run = {...img.runsText[i]};
+				run.fin = img.runsFins[i]; 
+				run.char = img.runsChars[i]; 
+				this.runs.push(run);
+			}
+			console.log(this.runs);
 			this.processImages(imageNo + 1);
 		}
 	}
 
-	textOperations(a,s,img,chars) {
-		let c = {
-				name: "",
-				lv: "",
-				boss: "",
-				dmg: "",
-				fin: s == "X\n" | "x\n"? 1 : 0,
-				char: chars
-			};
-		a.split("\n").forEach(a => {
-			let b = a.split(" ");
-			if(2 < b.length) {
-				let a = 0;
-				b.forEach(b => {
-					0 == a ? (a++, c.name = b in fixTable ? fixTable[b] : b) : 1 === a ? b.includes("Lv.") && (a++, c.lv = b.split(".")[1]) : 2 === a ? (a++, c.boss = b) : 3 === a ? c.boss += " " + b : void 0
+	ocrHeroes(img, attempt){
+		return new Promise((resolve, reject) =>
+			{
+				let genData = img.areaGen, areaData = img.areas[attempt];
+				this.chara.width = 400, this.chara.height = genData.h * .65;
+				this.chr.drawImage(img.image, areaData.x, areaData.y + genData.h * .35, 400, this.chara.height, 0, 0, 400, this.chara.height);
+
+				// detect left in the first one
+				if(!attempt){ 
+					this.charaR.width = 150; this.charaR.height = 18;
+					this.chrR.drawImage(this.chara, 0, 8, this.charaR.width, this.charaR.height, 0, 0, this.charaR.width, this.charaR.height);
+					this.chrR.fillStyle = `black`;
+					this.chrR.fillFlood(4, 4, 49);
+
+					let dataV = this.chrR.getImageData(0,0,this.charaR.width,this.charaR.height).data, step = 0;
+					for(let x = 5; x < this.charaR.width; x++){
+						let colorSum = 0;
+						for(let y = this.charaR.height-1; y > this.charaR.height / 2 ; y--){
+							let pixelPos = 4 * (x + y * this.charaR.width);
+							colorSum += dataV[pixelPos] + dataV[pixelPos + 1] + dataV[pixelPos + 2];
+						}
+
+						if(step == 0 && colorSum >= 500){
+							img.areaGen.left = x;
+							step++;
+							x += 5;
+						} else if(step == 1 && colorSum < 100){
+							img.areaGen.width = x - img.areaGen.left;
+							step++;
+							x += 5;
+						} else if(step == 2 && colorSum >= 500){
+							img.areaGen.spacing = x - img.areaGen.left - img.areaGen.width;
+							break;
+						}
+					}
+				}
+
+				// detect top
+				let dataH = this.chr.getImageData(60, 0, 1, this.chara.height / 4).data;
+				for(let y = 5; y < this.chara.height / 4; y++) { if (80 > dataH[4 * y] + dataH[4 * y + 1] + dataH[4 * y + 2]){ img.areas[attempt].top = y; break; } }
+
+				// heroes detection
+				let charArr = [];
+				for(let x = 0; x < 4; x++) {
+					let areaSize = img.areaGen.width, areaOffset = 4;
+					this.charaR.width = this.charaR.height = 48;
+					this.chrR.drawImage(this.chara, img.areaGen.left + (areaSize + img.areaGen.spacing) * x + areaOffset, img.areas[attempt].top + areaOffset, areaSize - areaOffset*2, areaSize - areaOffset*2, 0, 0, 48, 48);
+					this.cpr.clearRect(img.areaGen.left + (areaSize + img.areaGen.spacing) * x + areaData.x, areaData.y + genData.h * .35 + img.areas[attempt].top, areaSize, areaSize);
+						
+					let charName = character.search(this.charaR);
+					charArr.push(charName);
+					//console.log((attempt+1) + "." + (x+1), charName);
+				}
+				img.runsChars.push(charArr);
+				resolve("ocrHeroes done");
+			}
+		);
+	}
+
+	ocrBosses(img, attempt){
+		return new Promise((resolve, reject) =>
+		{
+			let genData = img.areaGen, areaData = img.areas[attempt], b = new Image;
+			this.bossc.width = 100, this.bossc.height = genData.h * .65;
+			this.cbo.drawImage(img.image, areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height, 0, 0, this.bossc.width, this.bossc.height);
+			//this.cpr.clearRect(areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height);
+			this.toGrayAndContrast(75, this.cbo, this.bossc);
+
+			b.src = this.bossc.toDataURL(), b.onload = () => {
+				Tesseract.recognize(b, "eng").then(({
+					data: { text: r }
+				}) => {
+					//console.log(r)
+					img.runsFins.push(r == "X\n" | "x\n"? 1 : 0);
+					resolve("ocrBosses done");
+				}).catch( e => {
+					reject(Error(e))
 				})
-			} else 1 < b.length && (c.dmg = b[0].replaceAll(",", "").replaceAll("_", "").replaceAll(".", "").replaceAll("-", "").replaceAll("`", "").replaceAll("’", ""), img.runs.push({...c}))
+			}
 		});
+	}
+
+	ocrText(img, attempt){
+		return new Promise((resolve, reject) =>
+			{
+				let genData = img.areaGen, areaData = img.areas[attempt], c = new Image;
+				this.tess.width = img.range.w, this.tess.height = img.range.h, this.cte.fillStyle = "black";
+				this.cte.drawImage(img.image, areaData.x, areaData.y, genData.w, genData.h, 0, 0, genData.w, genData.h);
+				this.cte.fillRect(0,  genData.h * .35, 400, genData.h * .65);
+				this.cte.fillRect( genData.w - 400,  genData.h * .35, 400,  genData.h * .65);
+				
+				this.toGrayAndContrast(5);
+
+				c.src = this.tess.toDataURL(), c.onload = () => {
+					Tesseract.recognize(c, "eng").then(({
+						data: { text: r }
+					}) => {
+						let c = { name: "", lv: "", boss: "", dmg: 0, fin: 0, char:[]};
+						r.split("\n").forEach(a => {
+							let b = a.split(" ");
+							if(b.length > 2){
+								let i = 0;
+								b.forEach(s => {
+									if( i == 0){
+										c.name = s in fixTable ? fixTable[s] : s, i++;
+									} else if( i == 1 && s.includes("Lv.")){
+										c.lv = s.split(".")[1],i++;
+									} else if( i == 2){
+										c.boss = s, i++;
+									} else if( i == 3){
+										c.boss += " " + s;
+									}
+								})
+							} else if(b.length > 1){
+								c.dmg = b[0].replace(/[^0-9]/g, '');
+								img.runsText.push({...c});
+							}
+						});
+						resolve("ocrText done");
+					}).catch( e => {
+						reject(Error(e))
+					})
+				}
+			}
+		);
 	}
 
 	toGrayAndContrast(a = 1, can = this.cte, canvas = this.tess) {
@@ -243,7 +286,7 @@ class ssImage{
 			b += a.name + "\t" + a.dmg + "\t" + a.boss + "\t" + a.lv + "\t" + a.fin + "\t" + a.char[0] + "\t" + a.char[1] + "\t" + a.char[2] + "\t" + a.char[3] + "\n"
 		});
 		document.getElementById("removeinfo").setAttribute("desc2","Removed " + (this.runs.length - a.length) + " duplicates");
-		document.getElementById("progress").setAttribute("desc2", ``);
+		document.getElementById("progress").setAttribute("desc2", `Done`);
 		document.getElementById("output").innerHTML = b;
 	}
 }

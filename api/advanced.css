@@ -26,7 +26,7 @@ body > div{
 }
 
 #inputblock:before {
-    content: "API v4.7";
+    content: "API v4.9";
     position: absolute;
     top: 2px;
     right: 2px;
@@ -109,10 +109,11 @@ body > div{
 
 #outputBlock>textarea{
     height: 100%;
-    width: 100%;
+    width: 200%;
     border: 0;
     background: rgb(150, 150, 150);
     font-size: x-small;
+    color: black
 }
 
 #outputBlock>button{
