@@ -3,5 +3,7 @@ const fixTable = {
     onePinch: "OnePinch",
     Clshima: "Cushima",
     Cashima: "Cushima",
-    romenos: "Lomonos"
+    romenos: "Lomonos",
+    Z1IN:"Z1N",
+    Z1iN:"Z1N"
 };
