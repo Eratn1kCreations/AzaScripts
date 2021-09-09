@@ -127,12 +127,20 @@ class ssImage{
 
 	ocrImage(img, imageNo, attempt = 0){
 		if(attempt<5){
-			Promise.all([this.ocrText(img,attempt),this.ocrHeroes(img,attempt),this.ocrBosses(img,attempt)]).then((ocrRes) => {
-				this.processedCount++;
+			this.ocrText(img,attempt).then((r1)=>{
+				this.processedCount += 0.3;
 				this.progressBar.setAttribute("value", this.processedCount);
-				this.progress.setAttribute("desc2", `${imageNo + 1}.${attempt + 1} / ${this.images.length} `);
-				this.ocrImage(img, imageNo, attempt + 1);
-			});
+				this.ocrHeroes(img,attempt).then((r2)=>{
+					this.processedCount += 0.3;
+					this.progressBar.setAttribute("value", this.processedCount);
+					this.ocrBosses(img,attempt).then((r3)=>{
+						Math.ceil(this.processedCount);
+						this.progressBar.setAttribute("value", this.processedCount);
+						this.progress.setAttribute("desc2", `${imageNo + 1}.${attempt + 1} / ${this.images.length} `);
+						this.ocrImage(img, imageNo, attempt + 1);
+					})
+				})
+			})
 		} else {
 			for(let i = 4; i >= 0; i--){
 				let run = {...img.runsText[i]};
