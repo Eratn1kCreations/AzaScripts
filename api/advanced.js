@@ -299,7 +299,7 @@ class ssImage{
 	}
 }
 
-const reader = new FileReader(), ssImg = new ssImage();
+const reader = new FileReader(), ssImg = new ssImage(), character = new Characters();
 
 document.querySelector("input").addEventListener("drop", a => {
 	a.preventDefault(), ssImg.loadToBuffer(a.dataTransfer.files);

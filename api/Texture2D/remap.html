@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="robots" content="noindex">
+    <script>
+        class Characters{
+            pImage = new Image;
+            mapCharacters = document.createElement("canvas");
+            mapSize = {x:16,y:8};
+            mapNames = [
+                "Eugene", "Future Princess", "God of Harvest Kamael", "Erina", "", "Elvira", "", "Marinanne", "Eva", "", "", "", "", "", "", "", 
+                "", "Miya", "Garam", "Future Knight", "Lahn", "Noxia", "Oghma", "Yuze", "", "Aisha", "", "", "", "", "", "", 
+                "Lavi", "", "Miya", "Sohee", "Knight", "Lifeguard Yuze", "White Beast", "Rue", "Bianca", "Lapice", "", "", "", "", "", "", 
+                "Mei", "Marvin", "", "Vishuvac", "Alef", "Knight", "Gremory", "Rachel", "Hekate", "Beach Sohee", "Karina", "", "", "", "", "", 
+                "Rie", "Tinia", "Ranpang", "Nari", "Scintilla", "Idol Eva", "Lucy", "Amy", "Plitvice", "Shapira", "Catherine", "Neva", "", "", "", "", 
+                "Akayuki", "Lynn", "Favi", "Ranpang", "Nari", "Bari", "Coco", "Aoba", "Loraine", "Plitvice", "Gabriel", "Dolf", "Arabelle", "", "", "", 
+                "Marina", "Mayreel", "Fei", "Lilith", "Girgas", "Eleanor", "Future Knight", "Beth", "Legendary Hero Erina", "Mk.99", "Veronica", "Gabriel", "Craig", "Lupina", 
+                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""
+            ];
+
+            newpImage = new Image;
+            newMapCharacters = document.createElement("canvas");
+            charaR = document.createElement("canvas");
+            newMapSize = {x:0,y:0};
+            newMapNames = [];
+
+            constructor(filename = 'portraits.png', newFilename = 'portraits_new.png'){
+                this.chrR = this.charaR.getContext("2d");
+                this.mpaCtx = this.mapCharacters.getContext("2d");
+                this.pImage.src = filename;
+                this.pImage.onload = () => {
+                    this.mapCharacters.width = this.pImage.width;
+                    this.mapCharacters.height = this.pImage.height;
+                    this.mapSize.w = this.pImage.width / this.mapSize.x;
+                    this.mapSize.w2 = this.mapSize.w / 2;
+                    this.mpaCtx.fillRect(0,0,this.pImage.width,this.pImage.height);
+                    this.mpaCtx.drawImage(this.pImage,0,0);
+
+                    this.nmpaCtx = this.newMapCharacters.getContext("2d");
+                    this.newpImage.src = newFilename;
+                    this.newpImage.onload = () => {
+                        this.newMapCharacters.width = this.newpImage.width;
+                        this.newMapCharacters.height = this.newpImage.height;
+
+                        this.newMapSize.x = Math.ceil(this.newpImage.width / (this.pImage.width / this.mapSize.x));
+                        this.newMapSize.y = Math.ceil(this.newpImage.height / (this.pImage.height / this.mapSize.y));
+
+                        this.newMapSize.w = this.newpImage.width / this.newMapSize.x;
+                        this.newMapSize.w2 = this.newMapSize.w / 2;
+                        this.nmpaCtx.fillRect(0,0,this.newpImage.width,this.newpImage.height);
+                        this.nmpaCtx.drawImage(this.newpImage,0,0);
+                        console.log(this.mapSize,' ==> ', this.newMapSize);
+                    }
+                }
+            }
+
+            cvReady(){
+                cv['onRuntimeInitialized']=()=>{
+                    this.src = cv.imread(this.newMapCharacters);
+                    this.dst = new cv.Mat();
+                    this.mask = new cv.Mat();
+                    this.remap();
+                };
+            }
+
+            remap(){
+                for(let y = 0; y < this.newMapSize.y; y++){
+                    for(let x = 0; x < this.newMapSize.x; x++){
+                        this.newMapNames.push("");
+                    }
+                }
+
+                for(let y = 0; y < this.newMapSize.y; y++){
+                    for(let x = 0; x < this.newMapSize.x; x++){
+                        console.log(y, x);
+                        let data = this.nmpaCtx.getImageData(this.newMapSize.w2 + this.newMapSize.w * x, this.newMapSize.w2 + this.newMapSize.w * y, 3, 3).data, sum = 0;
+                        for(let s = 0; s < 9; s++){
+                            sum += data[4 * s] + data[4 * s + 1] + data[4 * s + 2];
+                            if(sum > 255) break;
+                        }
+                        if(sum > 255){
+                            this.charaR.width = this.charaR.height = 48;
+                            this.chrR.drawImage(this.mapCharacters, this.mapSize.w * x + 5, this.mapSize.w * y + 5, 48, 48, 0, 0, 48, 48);
+                            this.search(this.charaR, this.mapNames[x + y * this.mapSize.x])
+                        }
+                    }
+                }
+                console.log(this.newMapNames);
+            }
+            
+            search(character, name){
+                let templ = cv.imread(character);
+                cv.matchTemplate(this.src, templ, this.dst, cv.TM_CCOEFF_NORMED , this.mask);
+                this.pointToName(cv.minMaxLoc(this.dst, this.mask).maxLoc, name);
+            }
+
+            pointToName(point, name){
+                let x = Math.floor((point.x + this.newMapSize.w2) / this.newMapSize.w),
+                    y = Math.floor((point.y + this.newMapSize.w2) / this.newMapSize.w);
+                this.newMapNames[x + y * this.newMapSize.x] = name;
+            }
+        }
+        const character = new Characters();
+    </script>
+	<script async src="https://docs.opencv.org/4.5.0/opencv.js" onload="character.cvReady();"></script>
+</head>
+
+<body>
+	
+</body>
+</html>

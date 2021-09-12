@@ -3,15 +3,15 @@ class Characters{
     mapCharacters = document.createElement("canvas");
     mapSize = {x:16,y:8};
     mapNames = [
-        "Eugene","Future Princess","Future Knight","Lahn","Noxia","Oghma","Yuze","","Aisha","","","","","","","",
-        "","Miya","Garam","Knight","Lifeguard Yuze","White Beast","Rue","Bianca","Lapice","","","","","","","",
-        "Lavi","","Miya","Sohee","Knight","Gremory","Rachel","Hekate","Beach Sohee","Karina","","","","","","",
-        "Mei","Marvin","","Vishuvac","Alef","Lucy","Amy","Plitvice","Shapira","Catherine","Neva","","","","","",
-        "Rie","Tinia","Ranpang","Nari","Scintilla","Idol Eva","Aoba","Loraine","Plitvice","Gabriel","Dolf","Arabelle","","","","",
-        "Akayuki","Lynn","Favi","Ranpang","Nari","Bari","Coco","Legendary Hero Erina","Mk.99","Veronica","Gabriel","Craig","Lupina","","","",
-        "Marina","Mayreel","Fei","Lilith","Girgas","Eleanor","Future Knight","Beth","Erina","","Elvira","","Marinanne","Eva","","",
-        "","","","","","","","","","","","","","","","",
-    ];
+        "Eugene", "Future Princess", "God of Harvest Kamael", "Erina", "", "Elvira", "", "Marinanne", "Eva", "", "", "", "", "", "", "", 
+        "", "Miya", "Garam", "Future Knight", "Lahn", "Noxia", "Oghma", "Yuze", "", "Aisha", "", "", "", "", "", "", 
+        "Lavi", "", "Miya", "Sohee", "Knight", "Lifeguard Yuze", "White Beast", "Rue", "Bianca", "Lapice", "", "", "", "", "", "", 
+        "Mei", "Marvin", "", "Vishuvac", "Alef", "Knight", "Gremory", "Rachel", "Hekate", "Beach Sohee", "Karina", "", "", "", "", "", 
+        "Rie", "Tinia", "Ranpang", "Nari", "Scintilla", "Idol Eva", "Lucy", "Amy", "Plitvice", "Shapira", "Catherine", "Neva", "", "", "", "", 
+        "Akayuki", "Lynn", "Favi", "Ranpang", "Nari", "Bari", "Coco", "Aoba", "Loraine", "Plitvice", "Gabriel", "Dolf", "Arabelle", "", "", "", 
+        "Marina", "Mayreel", "Fei", "Lilith", "Girgas", "Eleanor", "Future Knight", "Beth", "Legendary Hero Erina", "Mk.99", "Veronica", "Gabriel", "Craig", "Lupina", 
+        "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""
+      ];
 
     constructor(filename = 'api/Texture2D/portraits.png'){
         this.mpaCtx = this.mapCharacters.getContext("2d");
@@ -47,5 +47,3 @@ class Characters{
         return this.mapNames[x + y * this.mapSize.x];
     }
 }
-
-const character = new Characters();
