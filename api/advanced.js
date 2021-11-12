@@ -220,7 +220,6 @@ class ssImage{
 			this.cbo.drawImage(img.image, areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height, 0, 0, this.bossc.width, this.bossc.height);
 			//this.cpr.clearRect(areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height);
 			this.toGrayAndContrast(75, this.cbo, this.bossc);
-			alert("test");
 			b.src = this.bossc.toDataURL(), b.onload = () => {
 				Tesseract.recognize(b, "eng").then(({
 					data: { text: r }
