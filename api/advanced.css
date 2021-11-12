@@ -112,8 +112,9 @@ body > div{
     width: 200%;
     border: 0;
     background: rgb(150, 150, 150);
-    font-size: x-small;
-    color: black
+    font-size: xx-small;
+    color: black;
+    tab-size: 14;
 }
 
 #outputBlock>button{

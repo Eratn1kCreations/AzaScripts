@@ -128,18 +128,18 @@ class ssImage{
 	ocrImage(img, imageNo, attempt = 0){
 		if(attempt<5){
 			this.ocrText(img,attempt).then((r1)=>{
-				this.processedCount += 0.3;
+				this.processedCount += 0.5;
 				this.progressBar.setAttribute("value", this.processedCount);
-				this.ocrHeroes(img,attempt).then((r2)=>{
-					this.processedCount += 0.3;
-					this.progressBar.setAttribute("value", this.processedCount);
+				// this.ocrHeroes(img,attempt).then((r2)=>{
+				// 	this.processedCount += 0.3;
+				// 	this.progressBar.setAttribute("value", this.processedCount);
 					this.ocrBosses(img,attempt).then((r3)=>{
-						Math.ceil(this.processedCount);
+						this.processedCount += 0.5;
 						this.progressBar.setAttribute("value", this.processedCount);
 						this.progress.setAttribute("desc2", `${imageNo + 1}.${attempt + 1} / ${this.images.length} `);
 						this.ocrImage(img, imageNo, attempt + 1);
 					})
-				})
+				// })
 			})
 		} else {
 			for(let i = 4; i >= 0; i--){
@@ -227,6 +227,8 @@ class ssImage{
 				}) => {
 					//console.log(r)
 					img.runsFins.push(r == "X\n" | "x\n"? 1 : 0);
+					this.cpr.fillStyle ="rgba(0,0,0,.35)";
+					this.cpr.fillRect(areaData.x, areaData.y, genData.w, genData.h);
 					resolve("ocrBosses done");
 				}).catch( e => {
 					reject(Error(e))
@@ -291,7 +293,7 @@ class ssImage{
 		let a = this.runs.reduce((a, b) => a.some(a => JSON.stringify(b) === JSON.stringify(a)) ? a : [...a, b], []),
 			b = "";
 		a.forEach(a => {
-			b += a.name + "\t" + a.dmg + "\t" + a.boss + "\t" + a.lv + "\t" + a.fin + "\t" + a.char[0] + "\t" + a.char[1] + "\t" + a.char[2] + "\t" + a.char[3] + "\n"
+			b += `${a.name}\t${a.dmg}\t${a.boss}\t${a.lv}\t${a.fin}\n`// + "\t" + a.char[0] + "\t" + a.char[1] + "\t" + a.char[2] + "\t" + a.char[3] + "\n"
 		});
 		document.getElementById("removeinfo").setAttribute("desc2","Removed " + (this.runs.length - a.length) + " duplicates");
 		document.getElementById("progress").setAttribute("desc2", `Done`);
@@ -299,7 +301,7 @@ class ssImage{
 	}
 }
 
-const reader = new FileReader(), ssImg = new ssImage(), character = new Characters();
+const reader = new FileReader(), ssImg = new ssImage();//, character = new Characters();
 
 document.querySelector("input").addEventListener("drop", a => {
 	a.preventDefault(), ssImg.loadToBuffer(a.dataTransfer.files);
