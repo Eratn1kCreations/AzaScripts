@@ -215,24 +215,55 @@ class ssImage{
 	ocrBosses(img, attempt){
 		return new Promise((resolve, reject) =>
 		{
-			let genData = img.areaGen, areaData = img.areas[attempt], b = new Image;
-			this.bossc.width = 100, this.bossc.height = genData.h * .65;
-			this.cbo.drawImage(img.image, areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height, 0, 0, this.bossc.width, this.bossc.height);
-			//this.cpr.clearRect(areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height);
-			this.toGrayAndContrast(75, this.cbo, this.bossc);
-			b.src = this.bossc.toDataURL(), b.onload = () => {
-				Tesseract.recognize(b, "eng").then(({
-					data: { text: r }
-				}) => {
-					//console.log(r)
-					img.runsFins.push(r == "X\n" | "x\n"? 1 : 0);
-					this.cpr.clearRect(areaData.x, areaData.y, genData.w, genData.h);
-					resolve("ocrBosses done");
-				}).catch( e => {
-					reject(Error(e))
-				})
-			}
+			this.ocrBosses2(img, attempt);
+			resolve("ocrBosses done");
+			// let genData = img.areaGen, areaData = img.areas[attempt], b = new Image;
+			// this.bossc.width = 100, this.bossc.height = genData.h * .65;
+			// this.cbo.drawImage(img.image, areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height, 0, 0, this.bossc.width, this.bossc.height);
+			// this.cpr.clearRect(areaData.x + genData.w - this.bossc.width * 2, areaData.y + genData.h * .35, this.bossc.width, this.bossc.height);
+			// this.toGrayAndContrast(75, this.cbo, this.bossc);
+			// b.src = this.bossc.toDataURL(), b.onload = () => {
+			// 	Tesseract.recognize(b, "eng").then(({
+			// 		data: { text: r }
+			// 	}) => {
+			// 		//console.log(r)
+			// 		img.runsFins.push(r == "X\n" | "x\n"? 1 : 0);
+			// 		this.cpr.clearRect(areaData.x, areaData.y, genData.w, genData.h);
+			// 		resolve("ocrBosses done");
+			// 	}).catch( e => {
+			// 		reject(Error(e))
+			// 	})
+			// }
 		});
+	}
+
+	ocrBosses2(img, attempt){
+		let genData = img.areaGen, areaData = img.areas[attempt],
+			close = 0, col = this.rgb2hsv(49,85,107);
+
+		this.bossc.width = 1, this.bossc.height = genData.h * .65 - 20;
+		this.cbo.drawImage(img.image, areaData.x + genData.w - 10, areaData.y + genData.h * .35 + 10, 5, this.bossc.height, 0, 0, 5, this.bossc.height);
+		
+		let dataH = this.cbo.getImageData(0, 0, 1, this.bossc.height).data;
+		for(let x = 0; x < this.bossc.height; x++)
+			if( this.hsvDist(col,this.rgb2hsv(dataH[4*x],dataH[4*x+1],dataH[4*x+2])) < 0.1 )
+				close++;
+		
+		img.runsFins.push( close > 10 ? 0 : 1 );
+		this.cpr.clearRect(areaData.x, areaData.y, genData.w, genData.h);
+	}
+
+	rgb2hsv(r,g,b) {
+		let v=Math.max(r,g,b), c=v-Math.min(r,g,b);
+		let h= c && ((v==r) ? (g-b)/c : ((v==g) ? 2+(b-r)/c : 4+(r-g)/c)); 
+		return [60*(h<0?h+6:h), v&&c/v, v];
+	}
+
+	hsvDist(a,b) {
+		let dh = Math.min(Math.abs(b[0]-a[0]), 360-Math.abs(b[0]-a[0])) / 180.0,
+			ds = Math.abs(b[1]-a[1]),
+			dv = Math.abs(b[2]-a[2]) / 255.0;
+		return Math.sqrt(dh*dh+ds*ds+dv*dv);
 	}
 
 	ocrText(img, attempt){
