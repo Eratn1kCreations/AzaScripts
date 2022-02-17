@@ -1,0 +1,142 @@
+@font-face {
+    font-family: 'VAG';
+    src: url('NanumSquareOTFExtraBold.otf');
+}
+
+html, body{
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    background: rgb(150, 150, 150);
+}
+
+body > div{
+    width: 100%;
+}
+/* input */
+#inputblock{
+    position: relative;
+    background: rgb(44, 44, 44);
+    color: silver;
+    height: 60px;
+    display: flex;
+}
+
+#inputblock input {
+    display: block;
+    width: 70%;
+    opacity: 0;
+}
+
+#inputblock:before {
+    content: "API v6.01";
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    text-align: center;
+    font-size: xx-small;
+    z-index: 101
+}
+
+#inputblock:after {
+    content: "Drop screens here";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    font-size: x-small;
+}
+
+#inputblock button {
+    background: rgb(22, 22, 22);
+    color: silver;
+    cursor: pointer;
+    width: 30%;
+    border: 0;
+    border-radius: 0;
+}
+
+/* worker */
+#worker {
+    height: 40%;
+    background: rgb(120, 120, 120);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#worker img{
+    max-height: 100%;
+    max-width: 100%;
+}
+#worker canvas{
+    position: absolute;
+}
+
+/* Statistics */
+#results{
+    display: flex;
+    flex-wrap: wrap;
+    width: calc(100% - 5px);
+    margin-left: 5px;
+}
+
+#results>.row{
+    flex: 50% !important;
+    height: 20px !important;
+}
+
+#outputBlock{
+    height: calc(60% - 120px);
+    width: calc(100% - 5px);
+    margin-left: 5px;
+}
+
+#outputBlock>textarea{
+    height: 100%;
+    width: 200%;
+    border: 0;
+    background: rgb(150, 150, 150);
+    font-size: xx-small;
+    color: black;
+    tab-size: 14;
+}
+
+#outputBlock>button{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    font-size: x-small;
+    background: rgb(22, 22, 22);
+    color: silver;
+    cursor: pointer;
+    height: 20px;
+    border: 0;
+}
+
+.etq {
+    margin-top: 20px;
+    border-top: 1px solid;
+    position: relative
+    
+}
+
+.etq:before{
+    content: attr(desc);
+    position: absolute;
+    top: -15px;
+    left: 0;
+    font-size: x-small
+}
+
+.etq:after {
+    content: attr(desc2);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#pb{
+    width: calc(100% - 60px);
+    margin-left: 50px;
+}

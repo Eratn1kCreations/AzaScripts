@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <meta name="robots" content="noindex">
+        <title>SSAMISSWOI 6.0</title>
+        <link rel="icon" type="image/png" href="favicon.png"/>
+        <link href="api/noOCR/style.css" rel="stylesheet" type="text/css" />
+    </head>
+    <div id="inputblock">
+		<input type="file" multiple="multiple" />
+		<button onclick="processClick()">Start processing</button>
+	</div>
+    <div id="worker">
+		<canvas id="preview"></canvas>
+        <canvas id="test"></canvas>
+	</div>
+    <div id="results">
+		<div id="progress" class="etq row" desc="Processing progress:" desc2="">
+			<progress id="pb" min="0" max="10" value="0"></progress>
+		</div>
+		<div id="removeinfo" class="etq row" desc="Duplicates info:"  desc2="Removed 0 duplicates"></div>
+	</div>
+	<div id="outputBlock" class="etq" desc="Raid attempts output:">
+		<textarea id="output" disabled></textarea>
+		<button onclick="let tx = document.querySelector('textarea'); tx.disabled = false, tx.select(), document.execCommand('copy'), tx.disabled = true">Copy to clipboard</button>
+	</div>
+    <script src="api/noOCR/canvasFunctions.js"></script>
+    <script src="api/noOCR/templateMatching.js"></script>
+    <script src="api/noOCR/numberRecognition.js"></script>
+    <script src="api/noOCR/raidReading.js"></script>
+    <script>
+
+        const players = ['Alavien','Avi','Azaliah','Dani','Exudi','Faust','Fr0sT','kuxi','Leika','Makitos','Mamdou7','Manitar',
+                         'Mirajane','nuner12','PasharDisa','Recillia','ShinKhloe','STOFFIE','Wish','Wnag','Xan','Leoptxdhd','OKASHAIV',
+                         'Pia','Shinrai13','Akeshi','Fares','Z1N','Neves'];
+        
+        const bosses = ['Grand Admiral Marina','Lava Slime King','Minister Duncan','Viper Clan Leader'];
+
+        const reader = new FileReader(), sp = new ScreenshotParser("preview","pb",players,bosses);
+        document.querySelector("input").addEventListener("drop", a => {
+            a.preventDefault(), sp.loadToBuffer(a.dataTransfer.files);
+        });
+        window.addEventListener('resize', function(event) {
+            sp.canvasRescale()
+        }, true);
+        function processClick(){ sp.loadToBuffer(document.querySelector("input").files); }        
+    </script>
+</html>
