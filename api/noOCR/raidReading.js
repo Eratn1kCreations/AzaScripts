@@ -7,7 +7,7 @@ class AttemptsReading extends CanvasFunctions{
         this.tempSlice2 = document.createElement("canvas");
         this.tempSliceTh = document.createElement("canvas");
         this.tempColor = document.createElement("canvas");
-        this.tempGray = document.createElement("canvas");//document.getElementById("test");//
+        this.tempGray = document.createElement("canvas");
     }
 
     readAttempt(imageColor,attemptData,playersList,bossesList){
@@ -32,34 +32,27 @@ class AttemptsReading extends CanvasFunctions{
             this.getCanvasData(this.tempGray, 30, 15, 320, 35),
             0,0,true
         );
-        this.thresholdInv(this.tempSlice, this.tempSliceTh, 170, 255);
-        
-        let [w, h] = this.getCanvasShape(this.tempSliceTh),
-            [top,bot] = this.shrinkVertiacally(this.tempSliceTh,2),
-            checklist = playersList;
-      
-        h = bot - top;
-        let sliceData = this.getCanvasData(this.tempSliceTh,0,top,w,h).data,
-            xi = 0, left = -1, space = 0, n = 0;
+        this.threshold(this.tempSlice, this.tempSliceTh, 150, 255);
 
-        while ((left < 0 || space < 15) && xi < w){
-            for(let yi = 0; yi < h; yi++){
-                if(sliceData[(yi*w+xi)*4] < 255){
-                    if(left <= 1) left = xi;
-                    space = 0;
-                    break;
-                }
-            }
-            if(left >= 0 && space == 1){
+        let [w, h] = this.getCanvasShape(this.tempSliceTh),
+            sliceData = this.getCanvasData(this.tempSliceTh,0,0,w,h).data,
+            xi = 0, first = true, space = 0, n = 0, midY = Math.floor(h/2),
+            checklist = playersList;
+        
+        while ((first == true || space < 15) && xi < w){
+            if(sliceData[(midY*w + xi)*4] == 255){
+                let [rectX,rectY,rectWidth,rectHeight] = this.floodFill(this.tempSliceTh,xi,midY);
                 this.setCanvasData(
                     this.tempSlice2,
-                    this.getCanvasData(this.tempSlice, left, top, xi-left, bot-top),
+                    this.getCanvasData(this.tempSlice,rectX,rectY,rectWidth,rectHeight),
                     0,0,true
                 );
-                checklist = this.textMatching.checkLetter(this.tempSlice2, checklist, n)
-                if(checklist.length == 1) return checklist[0]
+                checklist = this.textMatching.checkLetter(this.tempSlice2, checklist, n);
+                if(checklist.length == 1) return checklist[0];
+                xi += rectWidth;
+                first = false;
+                space = 0;
                 n++;
-                left = 0;
             }
             space++;
             xi++;
@@ -71,66 +64,59 @@ class AttemptsReading extends CanvasFunctions{
         let [w, h] = this.getCanvasShape(this.tempGray);
         this.setCanvasData(
             this.tempSlice,
-            this.getCanvasData(this.tempGray, w-450, 15, 435, 30),
+            this.getCanvasData(this.tempGray, w-600, 15, 585, 35),
             0,0,true
         );
-        this.thresholdInv(this.tempSlice, this.tempSliceTh, 100, 255);
-
-        let [top,bot] = this.shrinkVertiacally(this.tempSliceTh,1);
-        [w, h] = this.getCanvasShape(this.tempSliceTh)
-        h = bot - top;
-        let sliceData = this.getCanvasData(this.tempSliceTh,0,top,w,h).data,
+        this.threshold(this.tempSlice, this.tempSliceTh, 110, 255);
+        
+        [w, h] = this.getCanvasShape(this.tempSliceTh);
+        let sliceData = this.getCanvasData(this.tempSliceTh,0,0,w,h).data,
+            xi = w-1, first = true, space = 0, n = 0, midY = Math.floor(h/2),
             checklist = bossesList.map(el => el.split('').reverse().join('')),
-            xi = 1, right = -1, space = 0, n = 0, bossName = "";
-
-        while ((right < 0 || space < 15) && xi < w){
-            for(let yi = 0; yi < h; yi++){
-                if(sliceData[(yi*w+w-xi)*4] < 255){
-                    if(right <= 1) right = w-xi;
-                    space = 0;
-                    break;
-                }
-            }
-            if(right >= 0 && space == 1){
+            bossName = "", bossLvL = 0;
+        
+        // from right
+        while ((first == true || space < 15) && xi >= 0){
+            if(sliceData[(midY*w + xi)*4] == 255){
+                let [rectX,rectY,rectWidth,rectHeight] = this.floodFill(this.tempSliceTh,xi,midY);
                 this.setCanvasData(
                     this.tempSlice2,
-                    this.getCanvasData(this.tempSlice, w-xi, top, right-w+xi, bot-top),
+                    this.getCanvasData(this.tempSlice,rectX,rectY,rectWidth,rectHeight),
                     0,0,true
                 );
-                checklist = this.textMatching.checkLetter(this.tempSlice2, checklist, n, 49)
+                checklist = this.textMatching.checkLetter(this.tempSlice2, checklist, n, 49);
                 if(checklist.length == 1){
                     bossName = checklist[0].split('').reverse().join('');
                     break;
                 }
+                xi -= rectWidth;
+                first = false;
+                space = 0;
                 n++;
-                right = 0;
             }
             space++;
-            xi++;
+            xi--;
         }
-        let left = -1, i = 0, bossLvL = 0;
-        xi = 0; space = 0; n = 1;
-        while ((left < 0 || space < 15) && xi < w){
-            for(let yi = 0; yi < h; yi++){
-                if(sliceData[(yi*w+xi)*4] < 255){
-                    if(left <= 1) left = xi;
-                    space = 0;
-                    break;
-                }
-            }
-            if(left >= 0 && space == 1){
-                if(i > 2){
+        // from  left
+        xi = 0; first = true; space = 0; n = 0;
+        while ((first == true || space < 15) && xi < w){
+            if(sliceData[(midY*w + xi)*4] == 255){
+                if(n < 2){
+                    xi += 21;
+                } else {
+                    let [rectX,rectY,rectWidth,rectHeight] = this.floodFill(this.tempSliceTh,xi,midY);
                     this.setCanvasData(
                         this.tempSlice2,
-                        this.getCanvasData(this.tempSlice, left, top, xi-left, bot-top),
+                        this.getCanvasData(this.tempSlice,rectX,rectY,rectWidth,rectHeight),
                         0,0,true
                     );
-                    bossLvL *= n;
-                    bossLvL += parseInt(this.textMatching.checkLetter(this.tempSlice2, ["0123456789"], -1, 49));
-                    n *= 10;
+                    bossLvL = bossLvL*10 + parseInt(this.textMatching.checkLetter(this.tempSlice2, ["0123456789"], -1, 49));
+                    if(n == 3) break;
+                    xi += rectWidth;
                 }
-                i++;
-                left = 0;
+                n++;
+                first = false;
+                space = 0;
             }
             space++;
             xi++;
@@ -144,54 +130,30 @@ class AttemptsReading extends CanvasFunctions{
             this.getCanvasData(this.tempGray, 390, 80, 340, 60),
             0,0,true
         );
-        this.thresholdInv(this.tempSlice, this.tempSliceTh, 150, 255);
+        this.threshold(this.tempSlice, this.tempSliceTh, 150, 255, true);
         
         let [w, h] = this.getCanvasShape(this.tempSliceTh),
-            [top,bot] = this.shrinkVertiacally(this.tempSliceTh);
-
-        h = bot - top;
-        let sliceData = this.getCanvasData(this.tempSliceTh,0,top,w,h).data,
-            xi = 0, left = -1, space = 0, damage = [];
-
-        while ((left < 0 || space < 15) && xi < w){
-            for(let yi = 0; yi < h; yi++){
-                if(sliceData[(yi*w+xi)*4] < 255){
-                    if(left <= 1) left = xi;
-                    space = 0;
-                    break;
-                }
-            }
-            if(left >= 0 && space == 1){
+            sliceData = this.getCanvasData(this.tempSliceTh,0,0,w,h).data,
+            xi = 0, first = true, space = 0, midY = Math.floor(h/2),
+            damage = [];
+        
+        while ((first == true || space < 25) && xi < w){
+            if(sliceData[(midY*w + xi)*4] == 0){
+                let [rectX,rectY,rectWidth,rectHeight] = this.floodFill(this.tempSliceTh,xi,midY,0);
                 this.setCanvasData(
-                    this.tempSlice,
-                    this.getCanvasData(this.tempSliceTh, left, top, xi-left, h),
+                    this.tempSlice2,
+                    this.getCanvasData(this.tempSliceTh,rectX,rectY,rectWidth,rectHeight),
                     0,0,true
                 );
-                damage.push(this.numberRecognition.readNumber(this.tempSlice));
-                left = 0;
+                damage.push(this.numberRecognition.readNumber(this.tempSlice2));
+                xi += rectWidth;
+                first = false;
+                space = 0;
             }
             space++;
             xi++;
         }
         return damage.join("");
-    }
-
-    shrinkVertiacally(image, checkWidth = 4){
-        let [w, h] = this.getCanvasShape(image), top = 0, bot = 0,
-            imageData = this.getCanvasData(image,0,0,w,h).data;
-        for(let y = 0; y < h; y++){
-            for(let x = 0; x < Math.floor(w/checkWidth); x++){
-                if(!top)
-                    if(imageData[(y*w+x)*4] < 255)
-                        top = y;
-                if(!bot)
-                    if(imageData[((h-1-y)*w+x)*4] < 255)
-                        bot = h-1-y;
-                if(top && bot)
-                    break;
-            }
-        }
-        return [top, bot];
     }
 
     checkIfKill(){
@@ -258,7 +220,6 @@ class ScreenshotParser extends AttemptsReading{
         let attempts = this.findAttemptArea();
         attempts.forEach((attempt)=>{
             this.runsData.push(this.readAttempt(this.screenshotColor,attempt, this.playersList, this.bossesList));
-            this.markAttemptArea(attempt,true);
             this.processedCount++;
             this.progress.setAttribute("value", this.processedCount);
         });
@@ -300,8 +261,9 @@ class ScreenshotParser extends AttemptsReading{
         if(clearArea){
             ctx.clearRect(attemptData.x,attemptData.y,attemptData.w,attemptData.h);
         } else {
-            ctx.fillStyle = "rgba(255,255,0,0.5)";
-            ctx.fillRect(attemptData.x,attemptData.y,attemptData.w,attemptData.h);
+            ctx.strokeStyle = "rgba(255,255,0,1)";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(attemptData.x,attemptData.y,attemptData.w,attemptData.h);
         }
     }
 
