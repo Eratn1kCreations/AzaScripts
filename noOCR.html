@@ -1,13 +1,11 @@
 <!DOCTYPE html>
     <html lang="en">
-
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <meta name="robots" content="noindex">
         <title>Sasami Reader</title>
-        <link rel="preload" href="/api/noOCR/NanumSquareOTFExtraBold.otf" as="font" crossorigin="anonymous" />
         <link rel="icon" type="image/png" href="api/noOCR/favicon.png"/>
         <link href="api/noOCR/style.css" rel="stylesheet" type="text/css" />
         <script src="api/noOCR/zepto.min.js"></script>
@@ -16,7 +14,7 @@
         <script src="api/noOCR/numberRecognition.js"></script>
         <script src="api/noOCR/raidReading.js"></script>
     </head>
-    <div id="inputblock">
+    <div id="inputblock" version="API v6.21">
 		<input type="file" multiple="multiple" />
 		<button onclick="processClick()">Start processing</button>
 		<button id="guildSel" onclick="toggleGuild()"></button>
@@ -58,28 +56,33 @@
 
         function updateDisableBlockDesc(text){document.getElementById("disableBlock").setAttribute("desc",text);}
 
-        if(macro != null && key != null){
-            $.ajax({
-                type: 'POST',
-                url: `https://script.google.com/macros/s/${macro}/exec`,
-                data: {key: key},
-                dataType: 'text',
-                success: function(r){
-                    response = JSON.parse(r);
-                    if(response.status == 200){
-                        sp.loadData(response.members.sasami, response.bosses);
-                        document.getElementById("disableBlock").className = "hide";
-                    } else {
-                        updateDisableBlockDesc("Invalid parameters");
+        var font = new FontFace("GTfont","url(./api/noOCR/NanumSquareOTFExtraBold.otf)");
+        font.load().then((f)=>{
+            document.fonts.add(f);
+            if(macro != null && key != null){
+                $.ajax({
+                    type: 'POST',
+                    url: `https://script.google.com/macros/s/${macro}/exec`,
+                    data: {key: key},
+                    dataType: 'text',
+                    success: function(r){
+                        response = JSON.parse(r);
+                        if(response.status == 200){
+                            sp.loadData(response.members.sasami, response.bosses);
+                            document.getElementById("disableBlock").className = "hide";
+                        } else {
+                            updateDisableBlockDesc("Invalid parameters");
+                        }
+                    },
+                    error: function(xhr, type){
+                        updateDisableBlockDesc("API call error");
                     }
-                },
-                error: function(xhr, type){
-                    updateDisableBlockDesc("Error while connecting to the API");
-                }
-            });
-        } else {
-            updateDisableBlockDesc("Missing parameters to run the script");
-        }
-        
+                });
+            } else {
+                updateDisableBlockDesc("Missing parameters to run the script");
+            }
+        },()=>{
+            updateDisableBlockDesc("Could not load font file");
+        });
     </script>
 </html>

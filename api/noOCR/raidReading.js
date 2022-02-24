@@ -198,6 +198,7 @@ class ScreenshotParser extends AttemptsReading{
             this.processedCount = 0;
             this.progress.setAttribute("max", filesQueue.length * 4);
             this.runsData = []
+            this.textMatching.clearNameBuffor();
         }
 
         if(fileNo < filesQueue.length){

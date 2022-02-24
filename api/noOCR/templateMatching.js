@@ -74,6 +74,10 @@ class TextMatching extends TemplateMatching{
         this.templateBuffor = {};
     }
 
+    clearNameBuffor(){
+        delete this.templateBuffor.name;
+    }
+
     generateTemplate(namesList, characterNo, type){
         
         if(type in this.templateBuffor && characterNo == 0){
@@ -97,7 +101,7 @@ class TextMatching extends TemplateMatching{
         this.setCanvasShape(this.template, 26*lettersList.length, 28);
         let c = this.getCanvasCtx(this.template);
             c.clearRect(0, 0, 26*lettersList.length, 28);
-            c.font = '26px VAG';
+            c.font = '26px GTfont';
             c.textBaseline = 'middle';
             c.textAlign = 'center';
             c.fillStyle = 'rgb(188,188,188)';
