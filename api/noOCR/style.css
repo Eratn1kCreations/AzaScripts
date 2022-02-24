@@ -15,11 +15,12 @@ html, body{
 body > div{
     width: 100%;
 }
+
 /* input */
 #inputblock{
     position: relative;
     background: rgb(44, 44, 44);
-    color: silver;
+    color: rgb(192,192,192);
     height: 60px;
     display: flex;
 }
@@ -31,7 +32,7 @@ body > div{
 }
 
 #inputblock:before {
-    content: "API v6.17";
+    content: "API v6.21";
     position: absolute;
     top: 2px;
     right: 2px;
@@ -152,7 +153,34 @@ body > div{
     left: 0;
 }
 
+.hide{
+    display: none;
+}
+
 #pb{
     width: calc(100% - 60px);
     margin-left: 50px;
+}
+
+#guildSel{
+    position: relative;
+    width: 90px !important;
+    border-left: 2px solid dimgray !important;
+}
+#guildSel:after, #guildSel:before{
+    position: absolute;
+    z-index: 99;
+}
+#guildSel:before{
+    content: "Sasami";
+    top: 15px;
+    left: 8px;
+}
+#guildSel:after {
+    content: "Sasamini";
+    bottom: 11px;
+    right: 8px;
+}
+#guildSel.a:before, #guildSel:not(.a):after{
+    color: rgb(192,192,192,.5);
 }
