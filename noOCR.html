@@ -63,6 +63,8 @@
                     updateDisableBlockDesc("Error connecting to the API");
                 }
             }
+            xmlHttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xmlHttp.setRequestHeader('Access-Control-Allow-Origin', '*');
             xmlHttp.open("GET",`https://script.google.com/macros/s/${macro}/exec?key=`+key, true);
             xmlHttp.send(null);
         } else {
