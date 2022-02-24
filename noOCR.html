@@ -13,6 +13,7 @@
     <div id="inputblock">
 		<input type="file" multiple="multiple" />
 		<button onclick="processClick()">Start processing</button>
+        <div id="disableBlock" class="" desc="Connectiong to the API, please wait"></div>
 	</div>
     <div id="worker">
 		<canvas id="preview"></canvas>
@@ -32,20 +33,41 @@
     <script src="api/noOCR/numberRecognition.js"></script>
     <script src="api/noOCR/raidReading.js"></script>
     <script>
-
-        const players = ['Alavien','Avi','Azaliah','Dani','Exudi','Faust','Fr0sT','kuxi','Leika','Makitos','Mamdou7','Manitar',
-                         'Mirajane','nuner12','PasharDisa','Recillia','ShinKhloe','STOFFIE','Wish','Wnag','Xan','Leoptxdhd','OKASHAIV',
-                         'Pia','Shinrai13','Akeshi','Fares','Z1N','Neves'];
-        
-        const bosses = ['Grand Admiral Marina','Lava Slime King','Minister Duncan','Viper Clan Leader'];
-
-        const reader = new FileReader(), sp = new ScreenshotParser("preview","pb",players,bosses);
+        const reader = new FileReader(), sp = new ScreenshotParser("preview","pb");
         document.querySelector("input").addEventListener("drop", a => {
             a.preventDefault(), sp.loadToBuffer(a.dataTransfer.files);
         });
         window.addEventListener('resize', function(event) {
             sp.canvasRescale()
         }, true);
-        function processClick(){ sp.loadToBuffer(document.querySelector("input").files); }        
+        function processClick(){ sp.loadToBuffer(document.querySelector("input").files); }
+
+        function updateDisableBlockDesc(text){document.getElementById("disableBlock").setAttribute("desc",text);}
+
+        var u = new URL(window.location.href),
+            macro = u.searchParams.get("macro"),
+            key = u.searchParams.get("key");
+
+        if(macro != null && key != null){
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function() { 
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+                    var response = JSON.parse(xmlHttp.responseText);
+                    if(response.status == 200){
+                        sp.loadData(response.players.sasami, response.bosses);
+                        document.getElementById("disableBlock").className = "hide";
+                    } else {
+                        updateDisableBlockDesc("Invalid parameters");
+                    }
+                } else {
+                    updateDisableBlockDesc("Error connecting to the API");
+                }
+            }
+            xmlHttp.open("GET",`https://script.google.com/macros/s/${macro}/exec?key=`+key, true);
+            xmlHttp.send(null);
+        } else {
+            updateDisableBlockDesc("Missing parameters to run the script");
+        }
+        
     </script>
 </html>

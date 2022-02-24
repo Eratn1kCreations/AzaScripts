@@ -84,7 +84,7 @@ class AttemptsReading extends CanvasFunctions{
                     this.getCanvasData(this.tempSlice,rectX,rectY,rectWidth,rectHeight),
                     0,0,true
                 );
-                checklist = this.textMatching.checkLetter(this.tempSlice2, checklist, n, 49);
+                checklist = this.textMatching.checkLetter(this.tempSlice2, checklist, n, 49, "boss");
                 if(checklist.length == 1){
                     bossName = checklist[0].split('').reverse().join('');
                     break;
@@ -110,7 +110,7 @@ class AttemptsReading extends CanvasFunctions{
                         this.getCanvasData(this.tempSlice,rectX,rectY,rectWidth,rectHeight),
                         0,0,true
                     );
-                    bossLvL = bossLvL*10 + parseInt(this.textMatching.checkLetter(this.tempSlice2, ["0123456789"], -1, 49));
+                    bossLvL = bossLvL*10 + parseInt(this.textMatching.checkLetter(this.tempSlice2, ["0123456789"], -1, 49, "lvl"));
                     if(n == 3) break;
                     xi += rectWidth;
                 }
@@ -181,11 +181,14 @@ class AttemptsReading extends CanvasFunctions{
 }
 
 class ScreenshotParser extends AttemptsReading{
-    constructor(previewName, progressBar, players, bosses){
+    constructor(previewName, progressBar){
         super();
         this.screenshotColor = document.createElement("canvas");
         this.preview = document.getElementById(previewName);
         this.progress = document.getElementById(progressBar);
+    }
+
+    loadData(players, bosses){
         this.playersList = players;
         this.bossesList = bosses;
     }

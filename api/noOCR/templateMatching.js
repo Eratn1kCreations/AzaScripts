@@ -71,9 +71,16 @@ class TextMatching extends TemplateMatching{
     constructor(){
         super();
         this.template = document.createElement("canvas");
+        this.templateBuffor = {};
     }
 
-    generateTemplate(namesList, characterNo = 0){
+    generateTemplate(namesList, characterNo, type){
+        
+        if(type in this.templateBuffor && characterNo == 0){
+            this.setCanvasData(this.template,this.templateBuffor[type][0],0,0,true);
+            return this.templateBuffor[type][1];
+        }
+
         let letters = "";
         if(characterNo < 0){
             letters = namesList[0];
@@ -84,7 +91,7 @@ class TextMatching extends TemplateMatching{
                 }
             });
         }
-
+    
         let lettersList = [...(new Set(letters))];
 
         this.setCanvasShape(this.template, 26*lettersList.length, 28);
@@ -94,20 +101,24 @@ class TextMatching extends TemplateMatching{
             c.textBaseline = 'middle';
             c.textAlign = 'center';
             c.fillStyle = 'rgb(188,188,188)';
-
+    
         let x = 13;
         lettersList.forEach((letter)=>{
             c.fillText(letter, x, 14);
             x += 26;
         });
 
+        if(characterNo == 0){
+            this.templateBuffor[type] = [this.getCanvasData(this.template,0,0,26*lettersList.length,28), lettersList];
+        }
+
         return lettersList;
     }
 
-    checkLetter(letterSlice, matchList, characterNo = 0, correctionValue = 67){
+    checkLetter(letterSlice, matchList, characterNo = 0, correctionValue = 67, type = 'name'){
         this.correctValue(letterSlice, correctionValue);
 
-        let lettersList = this.generateTemplate(matchList,characterNo),
+        let lettersList = this.generateTemplate(matchList,characterNo,type),
             [_,x] = this.matchTemplate(this.template,letterSlice),
             letter = lettersList[Math.floor((x + 10)/26)];
 
@@ -144,4 +155,5 @@ class TextMatching extends TemplateMatching{
             this.setCanvasData(letterSlice,temp,0,0);
         }
     }
+
 }
