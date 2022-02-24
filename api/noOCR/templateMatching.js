@@ -137,6 +137,8 @@ class TextMatching extends TemplateMatching{
             letters = ["l","k","1","i","I"]
         } else if(["m","n","r"].indexOf(letter) >= 0){
             letters = ["m","n","r"]
+        } else if(["N","H"].indexOf(letter) >= 0){
+            letters = ["N","H"]
         }
 
         let matchListOut = [];
