@@ -139,8 +139,12 @@ class TextMatching extends TemplateMatching{
             letters = ["m","n","r"]
         } else if(["N","H"].indexOf(letter) >= 0){
             letters = ["N","H"]
+        } else if(["K","r"].indexOf(letter) >= 0){
+            letters = ["K","r"]
+        } else if(["a","h"].indexOf(letter) >= 0){
+            letters = ["a","h"]
         }
-
+        
         let matchListOut = [];
         matchList.forEach((name)=>{
             if(name.length > characterNo)
