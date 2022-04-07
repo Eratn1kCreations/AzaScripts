@@ -74,11 +74,15 @@ class AttemptsReading extends CanvasFunctions{
             xi = w-1, first = true, space = 0, n = 0, midY = Math.floor(h/2),
             checklist = bossesList.map(el => el.split('').reverse().join('')),
             bossName = "", bossLvL = 0;
-        
+
         // from right
         while ((first == true || space < 15) && xi >= 0){
             if(sliceData[(midY*w + xi)*4] == 255){
                 let [rectX,rectY,rectWidth,rectHeight] = this.floodFill(this.tempSliceTh,xi,midY);
+                if(bossesList.includes("Fairy") && rectWidth > 19){
+                   bossName = "Fairy";
+                   break;
+                }
                 this.setCanvasData(
                     this.tempSlice2,
                     this.getCanvasData(this.tempSlice,rectX,rectY,rectWidth,rectHeight),
