@@ -140,7 +140,6 @@ class AttemptsReading extends CanvasFunctions{
             sliceData = this.getCanvasData(this.tempSliceTh,0,0,w,h).data,
             xi = 0, first = true, space = 0, midY = Math.floor(h/2),
             damage = [];
-        
         while ((first == true || space < 25) && xi < w){
             if(sliceData[(midY*w + xi)*4] == 0){
                 let [rectX,rectY,rectWidth,rectHeight] = this.floodFill(this.tempSliceTh,xi,midY,0);
@@ -152,6 +151,8 @@ class AttemptsReading extends CanvasFunctions{
                 damage.push(this.numberRecognition.readNumber(this.tempSlice2));
                 xi += rectWidth;
                 first = false;
+                space = 0;
+            } else if(sliceData[(Math.floor(midY*1.5)*w + xi)*4] == 0){
                 space = 0;
             }
             space++;
