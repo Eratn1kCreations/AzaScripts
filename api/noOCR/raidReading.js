@@ -33,7 +33,6 @@ class AttemptsReading extends CanvasFunctions{
             0,0,true
         );
         this.threshold(this.tempSlice, this.tempSliceTh, 150, 255);
-
         let [w, h] = this.getCanvasShape(this.tempSliceTh),
             sliceData = this.getCanvasData(this.tempSliceTh,0,0,w,h).data,
             xi = 0, first = true, space = 0, n = 0, midY = Math.floor(h/2),
@@ -41,7 +40,7 @@ class AttemptsReading extends CanvasFunctions{
         
         while ((first == true || space < 15) && xi < w){
             if(sliceData[(midY*w + xi)*4] == 255){
-                let [rectX,rectY,rectWidth,rectHeight] = this.floodFill(this.tempSliceTh,xi,midY);
+                let [rectX,rectY,rectWidth,rectHeight] = this.floodFill(this.tempSliceTh,xi,midY,255,true);
                 this.setCanvasData(
                     this.tempSlice2,
                     this.getCanvasData(this.tempSlice,rectX,rectY,rectWidth,rectHeight),
@@ -49,7 +48,7 @@ class AttemptsReading extends CanvasFunctions{
                 );
                 checklist = this.textMatching.checkLetter(this.tempSlice2, checklist, n);
                 if(checklist.length == 1) return checklist[0];
-                xi += rectWidth;
+                xi = rectX + rectWidth;
                 first = false;
                 space = 0;
                 n++;
@@ -135,7 +134,6 @@ class AttemptsReading extends CanvasFunctions{
             0,0,true
         );
         this.threshold(this.tempSlice, this.tempSliceTh, 150, 255, true);
-        
         let [w, h] = this.getCanvasShape(this.tempSliceTh),
             sliceData = this.getCanvasData(this.tempSliceTh,0,0,w,h).data,
             xi = 0, first = true, space = 0, midY = Math.floor(h/2),
@@ -198,7 +196,7 @@ class ScreenshotParser extends AttemptsReading{
         this.bossesList = bosses;
     }
 
-    loadToBuffer(filesQueue, fileNo = 0){
+    loadToBuffer(filesQueue, reverse, fileNo = 0){
         if(fileNo == 0){
             this.processedCount = 0;
             this.progress.setAttribute("max", filesQueue.length * 4);
@@ -214,11 +212,11 @@ class ScreenshotParser extends AttemptsReading{
                 b.setAttribute("id","pImg");
                 b.onload = () => {
                     this.parseScreenshot(b);
-                    this.loadToBuffer(filesQueue, fileNo + 1);
+                    this.loadToBuffer(filesQueue, reverse, fileNo + 1);
                 }
             }
         } else {
-			this.printOutput();
+			this.printOutput(reverse);
         }
     }
 
@@ -254,10 +252,10 @@ class ScreenshotParser extends AttemptsReading{
         let a = 0, b = 0;
         for(let y = begin*4; y < size*4; y += 4){
             if(!a)
-                if((dataTable[size*4-y]+dataTable[size*4-y+1]+dataTable[size*4-y+2]) < 80)
+                if((dataTable[size*4-y]+dataTable[size*4-y+1]+dataTable[size*4-y+2]) < 70)
                     a = y/4;
             if(!b)
-                if((dataTable[size*4+y]+dataTable[size*4+y+1]+dataTable[size*4+y+2]) < 80)
+                if((dataTable[size*4+y]+dataTable[size*4+y+1]+dataTable[size*4+y+2]) < 70)
                     b = y/4;
             if(a && b)
                 break;
@@ -298,11 +296,15 @@ class ScreenshotParser extends AttemptsReading{
 		}
 	}
 
-    printOutput() {
+    printOutput(reverse) {
 		let a = this.runsData.reduce((a, b) => a.some(a => JSON.stringify(b) === JSON.stringify(a)) ? a : [...a, b], []),
 			b = "";
 		a.forEach(a => {
-			b += `${a.name}\t${a.dmg}\t${a.boss}\t${a.lv}\t${a.fin}\n`
+            if(reverse){
+			    b += `${a.name}\t${a.dmg}\t${a.boss}\t${a.lv}\t${a.fin}\n`
+            } else {
+                b = `${a.name}\t${a.dmg}\t${a.boss}\t${a.lv}\t${a.fin}\n` + b
+            }
 		});
 		document.getElementById("removeinfo").setAttribute("desc2","Removed " + (this.runsData.length - a.length) + " duplicates");
 		document.getElementById("progress").setAttribute("desc2", `Done`);

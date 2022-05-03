@@ -14,7 +14,8 @@
         <script src="api/noOCR/numberRecognition.js"></script>
         <script src="api/noOCR/raidReading.js"></script>
     </head>
-    <div id="inputblock" version="API v6.23">
+    <div id="inputblock" version="API v6.33">
+		<button id="filesOrder" onclick="reverseOrder()">Files order</button>
 		<input type="file" multiple="multiple" />
 		<button onclick="processClick()">Start processing</button>
 		<button id="guildSel" onclick="toggleGuild()"></button>
@@ -39,15 +40,20 @@
         var u = new URL(window.location.href),
             macro = u.searchParams.get("macro"),
             key = u.searchParams.get("key"),
-            response = null, guildSel = false;
+            response = null, guildSel = false, filesOrder = false;
 
         document.querySelector("input").addEventListener("drop", a => {
-            a.preventDefault(), sp.loadToBuffer(a.dataTransfer.files);
+            a.preventDefault(), sp.loadToBuffer(a.dataTransfer.files, filesOrder);
         });
         window.addEventListener('resize', function(event) {
             sp.canvasRescale()
         }, true);
-        function processClick(){ sp.loadToBuffer(document.querySelector("input").files); }
+        function processClick(){ sp.loadToBuffer(document.querySelector("input").files, filesOrder); }
+        function reverseOrder(){
+            filesOrder = !filesOrder;
+            document.getElementById("filesOrder").className = (filesOrder)?"a":"";
+            sp.printOutput(filesOrder);
+        }
         function toggleGuild(){
             guildSel = !guildSel;
             document.getElementById("guildSel").className = (guildSel)?"a":"";
@@ -67,6 +73,7 @@
                     dataType: 'text',
                     success: function(r){
                         response = JSON.parse(r);
+                        console.log(response)
                         if(response.status == 200){
                             sp.loadData(response.members.sasami, response.bosses);
                             document.getElementById("disableBlock").className = "hide";

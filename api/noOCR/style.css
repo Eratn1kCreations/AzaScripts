@@ -40,7 +40,7 @@ body > div{
     content: "Drop screens here";
     position: absolute;
     top: 2px;
-    left: 2px;
+    left: 108px;
     font-size: x-small;
 }
 
@@ -178,4 +178,20 @@ body > div{
 }
 #guildSel.a:before, #guildSel:not(.a):after{
     color: rgb(192,192,192,.5);
+}
+
+#filesOrder{
+    position: relative;
+    width: 106px !important;
+    border-right: 2px solid dimgray !important;
+}
+#filesOrder:after{
+    top: 15px;
+    left: 8px;
+}
+#filesOrder.a:after{
+    content: " A-Z";
+}
+#filesOrder:after{
+    content: " Z-A";
 }

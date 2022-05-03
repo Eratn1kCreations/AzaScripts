@@ -133,16 +133,18 @@ class TextMatching extends TemplateMatching{
         let letters = [letter];
         if(["P","R","F"].indexOf(letter) >= 0){
             letters = ["P","R","F"]
-        } else if(["l","k","1","i","I"].indexOf(letter) >= 0){
-            letters = ["l","k","1","i","I"]
+        } else if(["l","k","1","i","I","J","j"].indexOf(letter) >= 0){
+            letters = ["l","k","1","i","I","J","j"]
         } else if(["m","n","r"].indexOf(letter) >= 0){
             letters = ["m","n","r"]
         } else if(["N","H"].indexOf(letter) >= 0){
             letters = ["N","H"]
         } else if(["K","r"].indexOf(letter) >= 0){
-            letters = ["K","r"]
+            letters = ["K","r","J","j"]
         } else if(["a","h"].indexOf(letter) >= 0){
             letters = ["a","h"]
+        } else if(["L","J","j"].indexOf(letter) >= 0){
+            letters = ["L","J","j"]
         }
         
         let matchListOut = [];
