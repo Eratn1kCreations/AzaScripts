@@ -16,8 +16,15 @@ class AttemptsReading extends CanvasFunctions{
             this.getCanvasData(imageColor,attemptData.x,attemptData.y,attemptData.w,attemptData.h),
             0,0,true
         );
-        this.toGrayscale(this.tempColor,this.tempGray);
+        
+        let pixelCheck = this.getCanvasData(this.tempColor,Math.floor(attemptData.w/2),attemptData.h - 15,1,1).data;
+        if(pixelCheck[0]+pixelCheck[1]+pixelCheck[2] < 95){
+            
+            this.adjustBrightness(this.tempColor,this.tempColor,35);
+            this.adjustContrast(this.tempColor,this.tempColor,45);
+        }
 
+        this.toGrayscale(this.tempColor,this.tempGray);
         let run = {};
             run.name = this.readName(playersList);
             run.dmg = this.readDmg();

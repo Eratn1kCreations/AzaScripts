@@ -107,4 +107,33 @@ class CanvasFunctions{
             this.setCanvasData(grayCanvas,imageData,0,0,true);
         return [minX,minY,maxX-minX,maxY-minY];
     }
+
+    adjustBrightness(colorCanvas, destinationCanvas, brightness){
+        let [w, h] = this.getCanvasShape(colorCanvas),
+            imageData = this.getCanvasData(colorCanvas,0,0,w,h);
+        for(let x = 0; x < (w*h)*4; x += 4){
+            imageData.data[x] = this.tren(imageData.data[x]+brightness);
+            imageData.data[x+1] = this.tren(imageData.data[x+1]+brightness);
+            imageData.data[x+2] = this.tren(imageData.data[x+2]+brightness);
+        }
+        this.setCanvasData(destinationCanvas,imageData,0,0,true);
+    }
+
+    adjustContrast(colorCanvas, destinationCanvas, contrast){
+        let [w, h] = this.getCanvasShape(colorCanvas),
+            imageData = this.getCanvasData(colorCanvas,0,0,w,h),
+            factor = (259 * (contrast + 255)) / (255 * (259 - contrast))
+        for(let x = 0; x < (w*h)*4; x += 4){
+            imageData.data[x] = this.tren(factor*(imageData.data[x]-128)+128);
+            imageData.data[x+1] = this.tren(factor*(imageData.data[x+1]-128)+128);
+            imageData.data[x+2] = this.tren(factor*(imageData.data[x+2]-128)+128);
+        }
+        this.setCanvasData(destinationCanvas,imageData,0,0,true);
+    }
+
+    tren(val){
+        if(val < 0) return 0;
+        if(val > 255) return 255;
+        return Math.floor(val);
+    }
 }

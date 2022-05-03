@@ -14,7 +14,7 @@
         <script src="api/noOCR/numberRecognition.js"></script>
         <script src="api/noOCR/raidReading.js"></script>
     </head>
-    <div id="inputblock" version="API v6.33">
+    <div id="inputblock" version="API v6.47">
 		<button id="filesOrder" onclick="reverseOrder()">Files order</button>
 		<input type="file" multiple="multiple" />
 		<button onclick="processClick()">Start processing</button>
@@ -73,7 +73,6 @@
                     dataType: 'text',
                     success: function(r){
                         response = JSON.parse(r);
-                        console.log(response)
                         if(response.status == 200){
                             sp.loadData(response.members.sasami, response.bosses);
                             document.getElementById("disableBlock").className = "hide";
