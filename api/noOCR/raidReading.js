@@ -168,7 +168,7 @@ class AttemptsReading extends CanvasFunctions{
 
     checkIfKill(){
         let [w, h] = this.getCanvasShape(this.tempColor), close = 0,
-            sliceData = this.getCanvasData(this.tempColor, w-11, Math.floor(h*.35)+10, 1 , h - Math.floor(h*.35) - 20).data;
+            sliceData = this.getCanvasData(this.tempColor, w-13, Math.floor(h*.35)+10, 1 , h - Math.floor(h*.35) - 20).data;
         for(let x = 0; x < sliceData.length; x += 4){
             if(this.hsvDist([204, 0.6122448979591837, 49],this.rgb2hsv(sliceData[x],sliceData[x+1],sliceData[x+2])) < 0.1)
                 close++
@@ -228,8 +228,9 @@ class ScreenshotParser extends AttemptsReading{
     }
 
     parseScreenshot(imageObject){
-        this.setCanvasShape(this.screenshotColor,imageObject.width,imageObject.height);
-        this.getCanvasCtx(this.screenshotColor).drawImage(imageObject,0,0);
+        this.setCanvasShape(this.screenshotColor,2400,1080);
+        this.getCanvasCtx(this.screenshotColor).imageSmoothingEnabled = false;
+        this.getCanvasCtx(this.screenshotColor).drawImage(imageObject,0,0,imageObject.width,imageObject.height,0,0,2400,1080);
         this.displayImage(imageObject);
         let attempts = this.findAttemptArea();
         attempts.forEach((attempt)=>{
@@ -244,7 +245,8 @@ class ScreenshotParser extends AttemptsReading{
             mw = Math.floor(w/2), mh = Math.floor(h/2),
             [top, bot] = this.findBorder(this.getCanvasData(this.screenshotColor,mw,0,1,h).data,mh),
             [left, right] = this.findBorder(this.getCanvasData(this.screenshotColor,0,mh-top+20,w,1).data,mw,600),
-            space = 7, ah = top + bot + 1, aw = left + right + 1,
+            ah = top + bot + 1, aw = left + right + 1,
+            space = this.calcSpace(this.getCanvasData(this.screenshotColor,mw,bot+1,1,15).data,15),
             anchorTop = mh - top - ah - space, anchorLeft = mw - left,
             attempts = [];
         for(let i = 0; i < 4; i++){
@@ -270,6 +272,14 @@ class ScreenshotParser extends AttemptsReading{
         return [a,b];
     }
 
+    calcSpace(dataTable, size){
+        for(let y = 16; y < size*4; y += 4){
+            if((dataTable[size*4-y]+dataTable[size*4-y+1]+dataTable[size*4-y+2]) > 70)
+                return y/4;
+        }
+        return 7;
+    }
+
     markAttemptArea(attemptData, clearArea = false){
         let ctx = this.getCanvasCtx(this.preview,true);
         if(clearArea){
@@ -285,8 +295,8 @@ class ScreenshotParser extends AttemptsReading{
 		document.querySelectorAll('[id^="pImg"]').forEach(function (e) { e.remove() });
 		document.getElementById("worker").insertBefore(image.cloneNode(false),this.preview);
 		let newImg = document.getElementById("pImg"),
-			w = image.width,
-			h = image.height,
+			w = 2400,
+			h = 1080,
 			sw = newImg.offsetWidth / w,
 			sh = newImg.offsetHeight / h;
 		this.setCanvasShape(this.preview,w,h);
