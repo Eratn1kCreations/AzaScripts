@@ -30,6 +30,7 @@ class AttemptsReading extends CanvasFunctions{
             run.dmg = this.readDmg();
             [run.boss, run.lv] = this.readBoss(bossesList);
             run.fin = this.checkIfKill();
+            run.carry = this.checkIfCarry();
         return run;
     }
 
@@ -168,12 +169,30 @@ class AttemptsReading extends CanvasFunctions{
 
     checkIfKill(){
         let [w, h] = this.getCanvasShape(this.tempColor), close = 0,
-            sliceData = this.getCanvasData(this.tempColor, w-13, Math.floor(h*.35)+10, 1 , h - Math.floor(h*.35) - 20).data;
+            sliceData = this.getCanvasData(this.tempColor, w-11, Math.floor(h*.35)+10, 1 , h - Math.floor(h*.35) - 20).data;
         for(let x = 0; x < sliceData.length; x += 4){
             if(this.hsvDist([204, 0.6122448979591837, 49],this.rgb2hsv(sliceData[x],sliceData[x+1],sliceData[x+2])) < 0.1)
                 close++
         }
         return (close > 10) ? 1 : 0;
+    }
+
+    checkIfCarry(){
+        this.setCanvasData(
+            this.tempSlice,
+            this.getCanvasData(this.tempGray, 500, 15, 10, 35),
+            0,0,true
+        );
+        this.threshold(this.tempSlice, this.tempSliceTh, 110, 255);
+        let [w, h] = this.getCanvasShape(this.tempSliceTh);
+        let sliceData = this.getCanvasData(this.tempSliceTh,0,0,w,h).data;
+        for(let xi = w-1; xi >= 0; xi--){
+            for(let yi = 0; yi < h; yi++){
+                if(sliceData[(yi*w + xi)*4] == 255)
+                    return 1;
+            }
+        }
+        return 0;
     }
 
     rgb2hsv(r,g,b) {
@@ -228,9 +247,10 @@ class ScreenshotParser extends AttemptsReading{
     }
 
     parseScreenshot(imageObject){
-        this.setCanvasShape(this.screenshotColor,2400,1080);
-        this.getCanvasCtx(this.screenshotColor).imageSmoothingEnabled = false;
-        this.getCanvasCtx(this.screenshotColor).drawImage(imageObject,0,0,imageObject.width,imageObject.height,0,0,2400,1080);
+        this.setCanvasShape(this.screenshotColor,imageObject.width,imageObject.height);
+        // this.setCanvasShape(this.screenshotColor,2400,1080);
+        // this.getCanvasCtx(this.screenshotColor).imageSmoothingEnabled = false;
+        this.getCanvasCtx(this.screenshotColor).drawImage(imageObject,0,0);
         this.displayImage(imageObject);
         let attempts = this.findAttemptArea();
         attempts.forEach((attempt)=>{
@@ -246,7 +266,8 @@ class ScreenshotParser extends AttemptsReading{
             [top, bot] = this.findBorder(this.getCanvasData(this.screenshotColor,mw,0,1,h).data,mh),
             [left, right] = this.findBorder(this.getCanvasData(this.screenshotColor,0,mh-top+20,w,1).data,mw,600),
             ah = top + bot + 1, aw = left + right + 1,
-            space = this.calcSpace(this.getCanvasData(this.screenshotColor,mw,bot+1,1,15).data,15),
+            //space = this.calcSpace(this.getCanvasData(this.screenshotColor,mw,bot+1,1,15).data,15),
+            space = 7,
             anchorTop = mh - top - ah - space, anchorLeft = mw - left,
             attempts = [];
         for(let i = 0; i < 4; i++){
@@ -295,8 +316,8 @@ class ScreenshotParser extends AttemptsReading{
 		document.querySelectorAll('[id^="pImg"]').forEach(function (e) { e.remove() });
 		document.getElementById("worker").insertBefore(image.cloneNode(false),this.preview);
 		let newImg = document.getElementById("pImg"),
-			w = 2400,
-			h = 1080,
+            w = image.width,
+            h = image.height,
 			sw = newImg.offsetWidth / w,
 			sh = newImg.offsetHeight / h;
 		this.setCanvasShape(this.preview,w,h);
@@ -318,9 +339,9 @@ class ScreenshotParser extends AttemptsReading{
 			b = "";
 		a.forEach(a => {
             if(reverse){
-			    b += `${a.name}\t${a.dmg}\t${a.boss}\t${a.lv}\t${a.fin}\n`
+			    b += `${a.name}\t${a.dmg}\t${a.boss}\t${a.lv}\t${a.fin}\t${a.carry}\n`
             } else {
-                b = `${a.name}\t${a.dmg}\t${a.boss}\t${a.lv}\t${a.fin}\n` + b
+                b = `${a.name}\t${a.dmg}\t${a.boss}\t${a.lv}\t${a.fin}\t${a.carry}\n` + b
             }
 		});
 		document.getElementById("removeinfo").setAttribute("desc2","Removed " + (this.runsData.length - a.length) + " duplicates");
