@@ -31,10 +31,14 @@ class NumberRecognition extends CanvasFunctions{
             pattern = [1,Number(Math.min(...tl) <= -6), Number(Math.max(...tl) >= 6), Number(Math.min(...bl) <= -6), Number(Math.max(...bl) >= 6), Number(Math.min(...tr) <= -6), Number(Math.max(...tr) >= 6), Number(Math.max(...br) >= 6)].join(''),
             templates = [11000001, 11111000, 11101000, 10010000, 10011110, 10000110, 11000000, 10001000, 10011000, 10011100],
             templatesCode = [2,3,3,4,5,6,7,9,9,5];
-        
+
         for(let i = 0; i < templates.length; i++){
-            if(templates[i] == pattern)
+            if(templates[i] == pattern){
+                if (pattern == 10001000 && middle > 25)
+                    return 1;
                 return templatesCode[i];
+            }
+                
         }
 
         if(middle > 25)
